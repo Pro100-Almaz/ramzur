@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ramzur — автоматизация и AI-агенты для бизнеса</title>
+<meta name="description" content="Разрабатываем AI-агентов, автоматизацию процессов и ПО под задачу. Первый созвон — в течение 24 часов после заявки.">
+
+<!--
+  ============================================================
+  ПЕРЕД ПУБЛИКАЦИЕЙ — ЗАМЕНИТЬ ПЛЕЙСХОЛДЕРЫ:
+  Все места, помеченные классом "ph" (пунктирная рамка) и/или
+  комментарием "УТОЧНИТЬ", содержат реальные данные компании,
+  которые нужно вставить: цифры в шапке, контакты, условия
+  гарантии, факты о команде. Список полностью — в конце файла
+  в комментарии CHECKLIST-BEFORE-LAUNCH.
+
+  Форма заявки сейчас НЕ отправляет данные на сервер —
+  см. комментарий TODO-BACKEND в блоке <script>.
+  ============================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- ============ NAV ============ -->
+<header class="nav">
+  <div class="wrap">
+    <a href="#hero" class="logo">
+      <svg viewBox="0 0 26 26" fill="none"><circle cx="6" cy="20" r="2.4" fill="#8B93A8"/><circle cx="6" cy="8" r="2.4" fill="#8B93A8"/><path d="M8 8h6a4 4 0 0 1 4 4v0a4 4 0 0 0 4 4h2" stroke="#FFB454" stroke-width="2" stroke-linecap="round"/><circle cx="24" cy="16" r="2" fill="#5EEAD4"/></svg>
+      Ramzur
+    </a>
+    <nav class="nav-links">
+      <a href="#about">О компании</a>
+      <a href="#services">Услуги</a>
+      <a href="#guarantees">Гарантии</a>
+      <a href="#checklist">Чек-лист</a>
+      <a href="#contact">Контакты</a>
+    </nav>
+    <div class="nav-actions">
+      <button type="button" class="btn btn-ghost nav-only js-open-modal"
+        data-title="Оставьте заявку" data-sub="Заполните два поля — свяжемся с вами в течение 24 часов."
+        data-placeholder="">Оставить заявку</button>
+      <button class="nav-toggle" id="navToggle" aria-label="Меню">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#about">О компании</a>
+    <a href="#services">Услуги</a>
+    <a href="#guarantees">Гарантии</a>
+    <a href="#checklist">Чек-лист</a>
+    <a href="#contact">Контакты</a>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Ramzur · Казахстан</span>
+      <h1>Снимаем рутину с бизнеса —<br>а не добавляем ещё один <em>сложный проект</em></h1>
+      <p class="hero-sub">Разрабатываем AI-агентов, автоматизацию и ПО под конкретную задачу — без долгих согласований и непонятных смет.</p>
+      <div class="hero-ctas">
+        <button type="button" class="btn btn-primary js-open-modal"
+          data-title="Оставьте заявку" data-sub="Заполните два поля — свяжемся с вами в течение 24 часов."
+          data-placeholder="">
+          Оставить заявку
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </button>
+        <button type="button" class="btn btn-ghost js-open-modal"
+          data-title="Расчёт стоимости проекта" data-sub="Расскажите коротко о задаче — пришлём ориентировочный расчёт и сроки."
+          data-placeholder="Например: нужен AI-агент для обработки заявок">Рассчитать стоимость проекта</button>
+      </div>
+      <div class="hero-note"><span class="dot"></span> Первый созвон — в течение 24 часов после заявки</div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <svg viewBox="0 0 560 420" fill="none">
+        <!-- scattered "manual routine" nodes, left side -->
+        <g class="chaos-group" stroke="#3A4258" stroke-width="1.4">
+          <line class="chaos-line" x1="40" y1="70" x2="95" y2="110"/>
+          <line class="chaos-line" x1="95" y1="110" x2="55" y2="150"/>
+          <line class="chaos-line" x1="55" y1="150" x2="120" y2="180"/>
+          <line class="chaos-line" x1="30" y1="220" x2="100" y2="200"/>
+          <line class="chaos-line" x1="100" y1="200" x2="70" y2="260"/>
+          <line class="chaos-line" x1="70" y1="260" x2="130" y2="290"/>
+          <line class="chaos-line" x1="45" y1="320" x2="110" y2="330"/>
+        </g>
+        <g fill="#5B6478">
+          <circle cx="40" cy="70" r="4"/>
+          <circle cx="95" cy="110" r="4"/>
+          <circle cx="55" cy="150" r="4"/>
+          <circle cx="120" cy="180" r="4"/>
+          <circle cx="30" cy="220" r="4"/>
+          <circle cx="100" cy="200" r="4"/>
+          <circle cx="70" cy="260" r="4"/>
+          <circle cx="130" cy="290" r="4"/>
+          <circle cx="45" cy="320" r="4"/>
+          <circle cx="110" cy="330" r="4"/>
+        </g>
+
+        <!-- the resolving flow line -->
+        <path class="flow-path" d="M130 200 C 220 200, 240 60, 340 60 C 430 60, 420 210, 500 210"
+          stroke="url(#flowGrad)" stroke-width="3" stroke-linecap="round" fill="none"
+          pathLength="1"/>
+
+        <circle class="flow-node" cx="500" cy="210" r="9" fill="url(#flowGrad)"/>
+        <circle cx="500" cy="210" r="16" fill="none" stroke="#FFB454" stroke-opacity="0.25" stroke-width="1"/>
+        <circle class="pulse-ring" cx="500" cy="210" r="16" fill="none" stroke="#FFB454" stroke-width="1.2"/>
+
+        <defs>
+          <linearGradient id="flowGrad" x1="130" y1="60" x2="500" y2="210" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#FFB454"/>
+            <stop offset="1" stop-color="#5EEAD4"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat reveal"><span class="stat-num ph">XX</span><span class="stat-label">реализованных проектов</span></div>
+      <div class="stat reveal"><span class="stat-num ph">X</span><span class="stat-label">лет на рынке</span></div>
+      <div class="stat reveal"><span class="stat-num ph">XX</span><span class="stat-label">отраслей</span></div>
+      <div class="stat reveal"><span class="stat-num ph">XX</span><span class="stat-label">довольных клиентов</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section class="section" id="about">
+  <div class="wrap about-grid">
+    <div class="about-copy reveal">
+      <span class="eyebrow">О компании</span>
+      <h2>Команда, которая разрабатывает под задачу, а не продаёт готовый шаблон</h2>
+      <div>
+        <h3>Кто мы</h3>
+        <p class="muted">Ramzur — IT-компания из Казахстана. Мы фокусируемся на трёх направлениях: разработка AI-агентов, автоматизация бизнес-процессов и разработка программного обеспечения под ключ. Не распыляемся на всё подряд — берём проекты там, где можем гарантировать результат.</p>
+      </div>
+      <div>
+        <h3>Почему с нами</h3>
+        <p class="muted">Мы не продаём «часы разработки» — мы продаём решение конкретной проблемы бизнеса. Перед стартом разбираемся, что реально нужно клиенту, и говорим прямо, если что-то можно сделать проще и дешевле, чем клиент изначально предполагал.</p>
+      </div>
+      <div class="team-card">
+        <p style="margin-bottom:8px; color:var(--text); font-weight:600; font-size:14.5px;">Команда <span class="ph">уточнить</span></p>
+        <p class="muted" style="font-size:14px;">Здесь нужны 1–2 факта о команде, которые вызывают доверие: опыт в конкретных отраслях, число разработчиков, ключевые компетенции.</p>
+      </div>
+    </div>
+
+    <div class="method reveal">
+      <div class="method-title">Как мы работаем</div>
+      <div class="method-step"><span class="n">01</span><p><strong>Заявка → созвон.</strong> Короткий разговор, чтобы понять задачу.</p></div>
+      <div class="method-step"><span class="n">02</span><p><strong>Предложение.</strong> Объём работ, сроки и стоимость — без сюрпризов позже.</p></div>
+      <div class="method-step"><span class="n">03</span><p><strong>Разработка с демо.</strong> Вы видите прогресс на каждом этапе, а не ждёте результата вслепую.</p></div>
+      <div class="method-step"><span class="n">04</span><p><strong>Сдача и поддержка.</strong> Проект передаётся вместе с периодом сопровождения.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SERVICES ============ -->
+<section class="section section--alt" id="services">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Услуги</span>
+      <h2>Три направления, в которых мы гарантируем результат</h2>
+    </div>
+
+    <div class="service-list">
+      <!-- 3.1 AI agents -->
+      <div class="service reveal">
+        <div>
+          <span class="service-tag">01 · AI-агенты</span>
+          <h3>AI-агенты, которые реально снимают работу с людей</h3>
+          <p class="service-for">Для бизнеса, где сотрудники тратят часы на повторяющиеся задачи: обработку заявок, ответы на типовые вопросы, сбор и обработку данных.</p>
+          <button type="button" class="btn btn-ghost service-cta js-open-modal"
+            data-title="Обсудим AI-агента для вашей задачи" data-sub="Опишите процесс — скажем прямо, поможет ли здесь AI-агент и что для этого нужно."
+            data-placeholder="Например: хотим автоматизировать ответы на частые вопросы клиентов">Обсудить задачу</button>
+        </div>
+        <div>
+          <p class="stack-label">Что входит</p>
+          <ul class="stack-list">
+            <li>Анализ процесса и точек, где агент даст максимальный эффект</li>
+            <li>Разработка и настройка AI-агента под конкретную задачу</li>
+            <li>Интеграция с уже используемыми системами (CRM, мессенджеры, почта)</li>
+            <li>Тестовый период перед полным запуском</li>
+          </ul>
+          <div class="bonus"><b>Сверху:</b> обучение команды работе с агентом и <span class="ph">N дней</span> бесплатной поддержки после запуска.</div>
+        </div>
+      </div>
+
+      <!-- 3.2 Automation -->
+      <div class="service reveal">
+        <div>
+          <span class="service-tag">02 · Автоматизация</span>
+          <h3>Меньше ручной работы — больше времени на то, что двигает бизнес</h3>
+          <p class="service-for">Для компаний, где процессы всё ещё держатся на таблицах, ручном вводе данных и разрозненных инструментах, которые не «разговаривают» друг с другом.</p>
+          <button type="button" class="btn btn-ghost service-cta js-open-modal"
+            data-title="Расчёт стоимости: автоматизация процессов" data-sub="Опишите процесс — оценим объём работ и ориентировочный бюджет."
+            data-placeholder="Например: нужно связать CRM и бухгалтерию, сейчас переносим данные вручную">Получить расчёт стоимости</button>
+        </div>
+        <div>
+          <p class="stack-label">Что входит</p>
+          <ul class="stack-list">
+            <li>Аудит текущих процессов и поиск узких мест</li>
+            <li>Автоматизация участков: документооборот, отчётность, обмен данными между системами</li>
+            <li>Настройка так, чтобы решение работало без постоянного участия разработчика</li>
+          </ul>
+          <div class="bonus"><b>Сверху:</b> <span class="ph">черновой вариант — выбрать</span> готовая инструкция для команды или бесплатный аудит второго процесса.</div>
+        </div>
+      </div>
+
+      <!-- 3.3 Custom software -->
+      <div class="service reveal">
+        <div>
+          <span class="service-tag">03 · Разработка ПО</span>
+          <h3>Программное обеспечение под вашу задачу — не «универсальное», а ваше</h3>
+          <p class="service-for">Для компаний, которым нужно решение, которого нет на рынке в готовом виде, или доработка/замена того, что уже не справляется.</p>
+          <button type="button" class="btn btn-ghost service-cta js-open-modal"
+            data-title="Расчёт стоимости: разработка ПО" data-sub="Опишите задачу — оценим объём работ и сроки."
+            data-placeholder="Например: нужен внутренний сервис для учёта заказов">Получить расчёт стоимости</button>
+        </div>
+        <div>
+          <p class="stack-label">Что входит</p>
+          <ul class="stack-list">
+            <li>Веб- и мобильная разработка</li>
+            <li>Интеграции с внешними сервисами и системами</li>
+            <li>Архитектура с расчётом на рост нагрузки, а не только на «сейчас»</li>
+          </ul>
+          <div class="bonus"><b>Сверху:</b> <span class="ph">черновой вариант — выбрать</span> техническая документация проекта или период гарантийной поддержки.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GUARANTEES ============ -->
+<section class="section" id="guarantees">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Гарантии</span>
+      <h2>Что происходит, если что-то пойдёт не так</h2>
+      <p>Мы понимаем, что для клиента подрядчик по разработке — это риск: деньги вперёд, результат потом. Работаем так, чтобы этот риск был на нас, а не на вас.</p>
+    </div>
+
+    <div class="guarantee-grid">
+      <div class="guarantee reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        <h3>Гарантия сроков</h3>
+        <p>Если срок сдачи этапа сдвигается по нашей вине — компенсируем это дополнительными часами разработки или скидкой на следующий этап.</p>
+        <span class="draft-tag ph">формулировку согласовать</span>
+      </div>
+      <div class="guarantee reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+        <h3>Прозрачность процесса</h3>
+        <p>Вы не ждёте финала «вслепую» — на каждом этапе есть демо-доступ к текущей версии и регулярный отчёт о статусе.</p>
+      </div>
+      <div class="guarantee reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
+        <h3>Пробный этап</h3>
+        <p>Можно начать не с полного контракта, а с небольшого пилотного этапа — аудита или прототипа, — чтобы оценить, как мы работаем.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:36px;">
+      <button type="button" class="btn btn-ghost js-open-modal"
+        data-title="Вопрос по гарантиям" data-sub="Опишите, что хотите уточнить — ответим до звонка."
+        data-placeholder="Например: как оформляется гарантия сроков?">Задать вопрос по гарантиям</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LEAD MAGNET / CHECKLIST ============ -->
+<section class="section section--alt" id="checklist">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Бесплатно</span>
+      <h2>Чек-лист: 5 признаков, что бизнесу пора внедрять AI-агента</h2>
+    </div>
+
+    <div class="checklist-panel reveal">
+      <ol class="checklist-items">
+        <li class="reveal"><span class="num">01</span><span>Один и тот же вопрос клиенты задают снова и снова, и на него отвечает живой человек</span></li>
+        <li class="reveal"><span class="num">02</span><span>Заявки и обращения теряются или обрабатываются с задержкой в часы, а не минуты</span></li>
+        <li class="reveal"><span class="num">03</span><span>Сотрудник тратит часть дня на перенос данных из одной системы в другую вручную</span></li>
+        <li class="reveal"><span class="num">04</span><span>Ответ клиенту зависит от того, на месте ли конкретный сотрудник</span></li>
+        <li class="reveal"><span class="num">05</span><span>Рост числа обращений означает, что придётся нанимать ещё людей на ту же типовую работу</span></li>
+      </ol>
+      <div class="checklist-side">
+        <h3>Узнали свой бизнес хотя бы в одном пункте?</h3>
+        <p>Это уже сигнал, что процесс можно передать AI-агенту. Опишите его нам — разберём бесплатно, без обязательств по дальнейшей разработке.</p>
+        <button type="button" class="btn btn-primary js-open-modal" style="align-self:flex-start;"
+          data-title="Бесплатный разбор вашего процесса" data-sub="Опишите процесс — посмотрим, что можно передать AI-агенту, без обязательств."
+          data-placeholder="Например: обработка заявок в мессенджере занимает часы каждый день">Получить бесплатный разбор</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="section" id="contact">
+  <div class="wrap contact-grid reveal">
+    <div>
+      <span class="eyebrow">Заявка</span>
+      <h2 style="margin-bottom:14px;">Оставьте заявку — обсудим задачу</h2>
+      <p class="muted" style="margin-bottom:32px; font-size:16px;">Заполните два поля — свяжемся с вами в течение 24 часов, чтобы уточнить детали и предложить решение.</p>
+
+      <div class="form-success" id="formSuccess">Заявка получена. Свяжемся с вами в течение 24 часов.</div>
+
+      <form id="leadForm">
+        <div class="form-field">
+          <label for="name">Имя *</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-field">
+          <label for="phone">Телефон или WhatsApp *</label>
+          <input type="tel" id="phone" name="phone" required>
+        </div>
+        <div class="form-field">
+          <label for="task">Кратко опишите задачу (необязательно)</label>
+          <textarea id="task" name="task"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Отправить заявку</button>
+        <p class="form-note">Отправляем без спама — только по вашей задаче.</p>
+      </form>
+    </div>
+
+    <div>
+      <p class="stack-label" style="margin-bottom:20px;">Другие способы связи</p>
+      <div class="alt-contacts">
+        <div class="alt-contact"><span class="label">Телефон</span><span class="ph">уточнить</span></div>
+        <div class="alt-contact"><span class="label">Telegram / WhatsApp</span><span class="ph">уточнить</span></div>
+        <div class="alt-contact"><span class="label">E-mail</span><span class="ph">уточнить</span></div>
+      </div>
+      <div class="ph-block" style="margin-top:28px;">
+        <b>Уточнить:</b> форма сейчас не подключена к CRM/мессенджеру. Перед запуском нужно связать её с реальным каналом приёма заявок (Telegram-бот, e-mail или CRM-вебхук), см. комментарий TODO-BACKEND в коде.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINAL CTA ============ -->
+<section class="cta-final">
+  <div class="wrap reveal">
+    <h2>Первый шаг — не контракт, а разговор</h2>
+    <p>Опишите задачу — ответим и предложим решение в течение 24 часов.</p>
+    <div class="hero-ctas">
+      <button type="button" class="btn btn-primary js-open-modal"
+        data-title="Оставьте заявку" data-sub="Заполните два поля — свяжемся с вами в течение 24 часов."
+        data-placeholder="">Оставить заявку</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap">
+    <div class="logo" style="font-size:16px;">
+      <svg viewBox="0 0 26 26" width="20" height="20" fill="none"><circle cx="6" cy="20" r="2.4" fill="#8B93A8"/><circle cx="6" cy="8" r="2.4" fill="#8B93A8"/><path d="M8 8h6a4 4 0 0 1 4 4v0a4 4 0 0 0 4 4h2" stroke="#FFB454" stroke-width="2" stroke-linecap="round"/><circle cx="24" cy="16" r="2" fill="#5EEAD4"/></svg>
+      Ramzur
+    </div>
+    <div class="footer-links">
+      <a href="#about">О компании</a>
+      <a href="#services">Услуги</a>
+      <a href="#contact">Контакты</a>
+    </div>
+    <div class="footer-copy">© 2026 Ramzur. Казахстан.</div>
+  </div>
+</footer>
+
+<script src="script.js" defer></script>
+
+<!--
+  ============================================================
+  CHECKLIST-BEFORE-LAUNCH — всё, что нужно вставить от Ramzur:
+
+  1. Блок «в цифрах» (hero): число проектов, лет на рынке,
+     число отраслей, число довольных клиентов.
+  2. Раздел «О компании» → карточка «Команда»: 1–2 факта,
+     вызывающих доверие (опыт, число разработчиков, ниши).
+  3. Услуга «AI-агенты» → бонус: количество дней поддержки.
+  4. Услуга «Автоматизация» → бонус: выбрать один вариант
+     (инструкция для команды / аудит второго процесса).
+  5. Услуга «Разработка ПО» → бонус: выбрать один вариант
+     (техдокументация / период гарантийной поддержки).
+  6. Гарантия сроков — согласовать точную юридическую
+     формулировку условий компенсации.
+  7. Контакты: телефон, Telegram/WhatsApp, e-mail.
+  8. Подключить форму заявки к реальному каналу приёма
+     заявок (см. TODO-BACKEND в <script> выше).
+  9. Раздел «Портфолио/кейсы» намеренно не включён (по
+     договорённости) — при готовности кейсов его можно
+     добавить между блоками #about и #services, сохранив
+     ту же сетку карточек, что в #services.
+  ============================================================
+-->
+
+<!-- ============ LEAD MODAL (opens from CTA buttons across the page) ============ -->
+<div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button type="button" class="modal-close" id="modalClose" aria-label="Закрыть">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <h3 id="modalTitle">Оставьте заявку</h3>
+    <p id="modalSub" class="muted modal-sub">Заполните два поля — свяжемся с вами в течение 24 часов.</p>
+
+    <div class="form-success" id="modalSuccess">Заявка получена. Свяжемся с вами в течение 24 часов.</div>
+
+    <form id="modalForm">
+      <div class="form-field">
+        <label for="modalName">Имя *</label>
+        <input type="text" id="modalName" required>
+      </div>
+      <div class="form-field">
+        <label for="modalPhone">Телефон или WhatsApp *</label>
+        <input type="tel" id="modalPhone" required>
+      </div>
+      <div class="form-field">
+        <label for="modalTask">Кратко опишите задачу (необязательно)</label>
+        <textarea id="modalTask" placeholder=""></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Отправить заявку</button>
+      <p class="form-note">Отправляем без спама — только по вашей задаче.</p>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>
