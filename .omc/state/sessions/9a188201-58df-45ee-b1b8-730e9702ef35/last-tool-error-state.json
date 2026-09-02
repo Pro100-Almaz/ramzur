@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd /Users/almazamanzholuly/Desktop/ramzur\\nOUT=/private/tmp/claude-501/-Users-almazamanzholuly-Desktop-ramzur/9a188201-58df-45ee-b1b8-730e9702ef35/scratchpad\\ncat > \\\"$OUT/behaviour.mjs\\\" ...",
+  "error": "Exit code 1\n  PASS  closed modal has no tabbable elements  — focusable=0\n  PASS  closed modal has hidden attribute\n  PASS  modal opens\n  PASS  focus lands on the first field  — activeElement=modalName\n  PASS  open modal exposes its controls  — focusable=5\n  PASS  Tab wraps forward inside the dialog\n  PASS  Shift+Tab wraps backward inside the dialog\n  PASS  Escape closes the dialog\n  FAIL  focus returns to the trigger\n  PASS  closed again removed from tab order\n  PASS  title swaps per CTA  — Обсу...",
+  "timestamp": "2026-09-02T08:01:57.999Z",
+  "retry_count": 1
+}
