@@ -204,14 +204,24 @@
   /* ==================== 6. STAT COUNT-UP =================================
      Runs only once a .stat-num actually holds a number, so it stays dormant
      while the values are XX placeholders. Any trailing characters ("+", "%")
-     are preserved. */
+     are preserved.
+
+     Small values are deliberately excluded. Counting 0 -> 2 gives three
+     frames over a second and reads as a rendering glitch rather than motion;
+     the effect only earns its place once there are enough intermediate
+     values to look like counting. Numbers below the threshold are simply
+     shown, which is also the honest presentation for a young company. */
+
+  var COUNT_UP_MIN = 10;
 
   (function(){
     var nums = Array.prototype.slice.call(document.querySelectorAll('.stat-num'));
     if(!nums.length || !('IntersectionObserver' in window)) return;
 
     var targets = nums.filter(function(el){
-      return /^\s*\d+\s*\D{0,2}\s*$/.test(el.textContent);
+      var raw = el.textContent.trim();
+      if(!/^\d+\D{0,2}$/.test(raw)) return false;
+      return parseInt(raw, 10) >= COUNT_UP_MIN;
     });
     if(!targets.length || reducedMotion()) return;
 

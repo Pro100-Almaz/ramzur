@@ -630,6 +630,17 @@ p{ margin: 0; text-wrap: pretty; }
 .about-copy h3{ margin-bottom: 10px; }
 .about-copy p{ max-width: var(--prose); }
 
+/* The right-hand column stacks the process panel and the team credential.
+   A wrapper rather than making both direct grid children: at the one-column
+   breakpoint two grid items would separate and the card would drift away
+   from the panel it belongs under. */
+.about-side{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
 .method{
   background: var(--surface-2);
   border: 1px solid var(--line);
@@ -662,20 +673,58 @@ p{ margin: 0; text-wrap: pretty; }
 .method-step p{ font-size: 15px; color: var(--text-muted); }
 .method-step strong{ color: var(--text); font-weight: 600; }
 
+/* Now carries real team facts, so the dashed "fill me in" treatment is gone.
+   It shares the .method panel language it sits beneath — the page's existing
+   form for a block of stated specifics — rather than inventing a third card
+   style. Spacing comes from the .about-side gap, so no margin here. */
 .team-card{
-  margin-top: 22px;
-  padding: 20px;
-  border: 1px dashed var(--draft-line);
-  border-radius: var(--radius-sm);
-  background: rgba(255,180,84,0.05);
+  padding: clamp(20px, 2.2vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
 }
 .team-card-title{
-  margin-bottom: 8px;
-  color: var(--text);
-  font-weight: 600;
-  font-size: 14.5px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text-faint);
+  margin-bottom: 12px;
 }
-.team-card-body{ font-size: 14px; color: var(--text-muted); }
+.team-card-body{ font-size: 15px; color: var(--text-muted); }
+/* the university is the credential, so it is the one thing lifted to full ink */
+.team-card-body strong{ color: var(--text); font-weight: 600; }
+
+/* The four disciplines are listed once, here, rather than repeated in the
+   sentence above — a scannable row beats a comma list buried in prose.
+   Markers lead each item instead of separating them: a middot separator
+   dangles at the end of a line whenever the row wraps, which it does below
+   about 420px. */
+.team-disciplines{
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.team-disciplines li{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.team-disciplines li::before{
+  content: "";
+  flex: 0 0 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--amber);
+}
 
 @media (max-width: 880px){
   .about-grid{ grid-template-columns: 1fr; }
@@ -783,6 +832,152 @@ p{ margin: 0; text-wrap: pretty; }
   .service{ grid-template-columns: 1fr; gap: 24px; }
   .service-cta{ margin-top: 4px; }
   .bonus{ margin-top: 4px; }
+}
+
+/* ---------- Clients / social proof ----------
+   A punctuation band between two full-weight sections, not a third one: the
+   tighter vertical rhythm is what keeps "who we are -> who trusted us ->
+   what we do" reading as one thought.
+
+   Deliberately NOT a card grid and NOT a marquee. The page already states
+   factual proof as hairline-divided cells (the "в цифрах" strip, the process
+   steps, the contact rows), so this reuses that language; and an
+   auto-scrolling logo carousel is the exact "cheap outsourcing site" move
+   PRODUCT.md lists as an anti-reference. */
+.section--tight{ padding-block: clamp(48px, 6vw, 68px); }
+.clients-head{ margin-bottom: clamp(28px, 3.2vw, 40px); }
+
+/* Rows are separated by hairlines, columns by whitespace.
+   Vertical dividers were the obvious choice here (it is what the "в цифрах"
+   strip does) but they cannot survive a partial last row: with auto-fit, four
+   columns and five logos, the fifth cell draws a divider that dangles into
+   empty space. Row rules have no such failure — the wrapper clips the final
+   cell border, so its own bottom rule is the only line under the last row
+   whether that row is full or not.
+   Net effect: this wall stays correct for any number of entries at any
+   width, so deleting a card needs no CSS change. */
+.client-wall-clip{
+  overflow: hidden;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.client-wall{
+  --client-pad: clamp(14px, 1.6vw, 20px);
+  list-style: none;
+  padding: 0;
+  /* bled outward so the hover wash reads as a band and the first column's
+     content still lines up with the section heading — the same trick the
+     checklist rows use */
+  margin: 0 calc(-1 * var(--client-pad)) -1px;
+  display: grid;
+  /* Explicit counts, all divisors of six, so the last row is never partial.
+     auto-fit looked tempting but at tablet widths it settles on five tracks
+     and strands the sixth logo alone on its own row.
+     Using 4 or 5 entries instead? Change the 6 below to that number. */
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.client{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+  /* no column gap: cells butt together so the row rule runs continuously
+     instead of breaking into one segment per cell */
+  padding: clamp(22px, 2.4vw, 28px) var(--client-pad);
+  border-bottom: 1px solid var(--line);
+  transition: background var(--dur-mid) var(--ease-out-quart);
+}
+
+@media (max-width: 1000px){
+  .client-wall{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 620px){
+  .client-wall{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.client-mark{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 44px;
+}
+
+/* Client logos arrive in whatever colour and aspect ratio the client sends.
+   Flattening every one to a single white keeps the wall from reading as a
+   ransom note on this dark ground, and it stays legible on touch (where
+   there is no hover) because the resting opacity is already readable.
+   Colour is deliberately never restored: a navy or black wordmark would
+   disappear against --bg. */
+.client-logo{
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 34px;
+  /* brightness(0) flattens to black while keeping the alpha channel,
+     invert(1) then lifts it to white — works for any source colour */
+  filter: brightness(0) invert(1);
+  opacity: .72;
+  /* per-logo optical balance: a wide wordmark and a compact square mark read
+     as different visual weights at the same height, so each can be nudged
+     with style="--logo-scale: .9" on the img without touching this rule */
+  scale: var(--logo-scale, 1);
+  transition:
+    opacity var(--dur-mid) var(--ease-out-quart),
+    scale var(--dur-mid) var(--ease-out-quint);
+}
+
+/* placeholder slot, in the same dashed language as every other pending item */
+.client-mark--empty{
+  justify-content: center;
+  border: 1px dashed var(--draft-line);
+  border-radius: var(--radius-sm);
+  background: rgba(255,180,84,0.05);
+  color: var(--amber);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: .04em;
+}
+
+/* The industry is the fact that turns a logo into a claim. Left as plain
+   pending text rather than a second dashed pill per cell — twelve dashed
+   markers in one band was pure noise, and the note below explains it once. */
+.client-industry{
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.client-industry:empty::before{ content: "отрасль"; color: var(--text-faint); }
+.clients-note{ margin-top: clamp(22px, 2.6vw, 30px); }
+.clients-note code{
+  font-family: var(--font-mono);
+  font-size: .92em;
+  color: var(--text);
+}
+
+@media (hover: hover){
+  .client:hover{ background: rgba(255,180,84,0.05); }
+  .client:hover .client-logo{ opacity: 1; scale: calc(var(--logo-scale, 1) * 1.04); }
+}
+
+/* The wall settles in reading order — it is a list being scanned, so the
+   entrance follows the same left-to-right cadence as the stats strip.
+
+   The wrapper carries .reveal purely as the scroll trigger; its own fade and
+   rise are cancelled so the cells are the only thing that moves. Otherwise
+   the block and its children animate opacity over each other and the whole
+   wall arrives muddy. */
+.js .client-wall-clip.reveal{ opacity: 1; }
+.js .client-wall-clip.reveal:not(.is-visible){ transform: none; }
+.js .client-wall-clip:not(.is-visible) .client{ opacity: 0; }
+.js .client-wall-clip.is-visible .client{
+  animation: clientIn .6s var(--ease-out-quint) both;
+  animation-delay: calc(120ms + var(--i, 0) * 65ms);
+}
+@keyframes clientIn{
+  from{ opacity: 0; transform: translateY(12px); }
+  to  { opacity: 1; transform: none; }
 }
 
 /* ---------- Guarantees ---------- */
@@ -1228,7 +1423,8 @@ body.modal-open{ overflow: hidden; }
    Every resting transform is scoped to :not(.is-visible) so the arrived
    state cannot be overridden by a later, equally specific variant rule. */
 .js .reveal:not(.is-visible){ transform: translateY(26px); }
-.js .method.reveal:not(.is-visible){ transform: translateX(24px); }
+.js .method.reveal:not(.is-visible),
+.js .team-card.reveal:not(.is-visible){ transform: translateX(24px); }
 .js .checklist-items li.reveal:not(.is-visible){ transform: translateX(-16px); }
 .js .guarantee.reveal:not(.is-visible){ transform: translateY(24px) scale(.985); }
 .js .stat.reveal:not(.is-visible){ transform: translateY(14px); }
@@ -1299,6 +1495,8 @@ body.modal-open{ overflow: hidden; }
   .js .reveal:not(.is-visible),
   .js .reveal.is-visible{ opacity: 1; transform: none; }
   .js .method.is-visible .method-step{ animation: none; opacity: 1; transform: none; }
+  .js .client-wall-clip:not(.is-visible) .client,
+  .js .client-wall-clip.is-visible .client{ animation: none; opacity: 1; transform: none; }
 
   /* crossfade instead of movement */
   .form-success.show{ animation: none; }
@@ -1315,6 +1513,7 @@ body.modal-open{ overflow: hidden; }
   .btn-primary:hover svg,
   .service:hover .stack-list li::before,
   .guarantee:hover svg{ transform: none; }
+  .client:hover .client-logo{ scale: var(--logo-scale, 1); }
 }
 
 </style>
@@ -1370,7 +1569,7 @@ body.modal-open{ overflow: hidden; }
 <section class="hero" id="hero">
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <span class="eyebrow hero-in" style="--in:1">Ramzur · Казахстан</span>
+      <span class="eyebrow hero-in" style="--in:1">Ramzur · System</span>
       <h1 class="hero-in" style="--in:2">Снимаем рутину с бизнеса — а не добавляем ещё один <em>сложный проект</em></h1>
       <p class="hero-sub hero-in" style="--in:3">Разрабатываем AI-агентов, автоматизацию и ПО под конкретную задачу — без долгих согласований и непонятных смет.</p>
       <div class="hero-ctas hero-in" style="--in:4">
@@ -1450,10 +1649,10 @@ body.modal-open{ overflow: hidden; }
       <span class="stat-num">48</span> или <span class="stat-num">120+</span>.
     -->
     <div class="stats">
-      <div class="stat reveal" style="--i:0"><span class="stat-num ph">XX</span><span class="stat-label">реализованных проектов</span></div>
-      <div class="stat reveal" style="--i:1"><span class="stat-num ph">X</span><span class="stat-label">лет на рынке</span></div>
-      <div class="stat reveal" style="--i:2"><span class="stat-num ph">XX</span><span class="stat-label">отраслей</span></div>
-      <div class="stat reveal" style="--i:3"><span class="stat-num ph">XX</span><span class="stat-label">довольных клиентов</span></div>
+      <div class="stat reveal" style="--i:0"><span class="stat-num">5</span><span class="stat-label">реализованных проектов</span></div>
+      <div class="stat reveal" style="--i:1"><span class="stat-num">2</span><span class="stat-label">года на рынке</span></div>
+      <div class="stat reveal" style="--i:2"><span class="stat-num">4</span><span class="stat-label">отрасли</span></div>
+      <div class="stat reveal" style="--i:3"><span class="stat-num">9</span><span class="stat-label">довольных клиентов</span></div>
     </div>
   </div>
 </section>
@@ -1472,18 +1671,97 @@ body.modal-open{ overflow: hidden; }
         <h3>Почему с нами</h3>
         <p class="muted">Мы не продаём «часы разработки» — мы продаём решение конкретной проблемы бизнеса. Перед стартом разбираемся, что реально нужно клиенту, и говорим прямо, если что-то можно сделать проще и дешевле, чем клиент изначально предполагал.</p>
       </div>
-      <div class="team-card">
-        <p class="team-card-title">Команда <span class="ph">уточнить</span></p>
-        <p class="team-card-body">Здесь нужны 1–2 факта о команде, которые вызывают доверие: опыт в конкретных отраслях, число разработчиков, ключевые компетенции.</p>
-      </div>
     </div>
 
-    <div class="method reveal">
-      <div class="method-title">Как мы работаем</div>
-      <div class="method-step" style="--i:0"><span class="n">01</span><p><strong>Заявка → созвон.</strong> Короткий разговор, чтобы понять задачу.</p></div>
-      <div class="method-step" style="--i:1"><span class="n">02</span><p><strong>Предложение.</strong> Объём работ, сроки и стоимость — без сюрпризов позже.</p></div>
-      <div class="method-step" style="--i:2"><span class="n">03</span><p><strong>Разработка с демо.</strong> Вы видите прогресс на каждом этапе, а не ждёте результата вслепую.</p></div>
-      <div class="method-step" style="--i:3"><span class="n">04</span><p><strong>Сдача и поддержка.</strong> Проект передаётся вместе с периодом сопровождения.</p></div>
+    <div class="about-side">
+      <div class="method reveal">
+        <div class="method-title">Как мы работаем</div>
+        <div class="method-step" style="--i:0"><span class="n">01</span><p><strong>Заявка → созвон.</strong> Короткий разговор, чтобы понять задачу.</p></div>
+        <div class="method-step" style="--i:1"><span class="n">02</span><p><strong>Предложение.</strong> Объём работ, сроки и стоимость — без сюрпризов позже.</p></div>
+        <div class="method-step" style="--i:2"><span class="n">03</span><p><strong>Разработка с демо.</strong> Вы видите прогресс на каждом этапе, а не ждёте результата вслепую.</p></div>
+        <div class="method-step" style="--i:3"><span class="n">04</span><p><strong>Сдача и поддержка.</strong> Проект передаётся вместе с периодом сопровождения.</p></div>
+      </div>
+
+      <div class="team-card reveal" style="--i:1">
+        <p class="team-card-title">Команда</p>
+        <p class="team-card-body">Шесть разработчиков. Все — выпускники <strong>Nazarbayev University</strong>.</p>
+        <ul class="team-disciplines">
+          <li>Backend</li>
+          <li>Frontend</li>
+          <li>Mobile</li>
+          <li>ML&nbsp;/&nbsp;AI</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CLIENTS / SOCIAL PROOF ============
+  Каждая запись = логотип + отрасль. Отрасль здесь не украшение: она
+  превращает набор логотипов в конкретное утверждение («работаем в
+  логистике»), а не в безымянную «стену доверия».
+
+  КАК ПОДСТАВИТЬ РЕАЛЬНЫЕ ДАННЫЕ (по одной строке на клиента):
+    1. Положите логотип в  assets/logos/  — лучше SVG с прозрачным фоном
+       (PNG подойдёт, но нужен @2x для retina).
+    2. В нужной карточке замените блок
+         <div class="client-mark client-mark--empty">…</div>
+       на закомментированный <img> ниже него, поправив src и alt.
+    3. Впишите отрасль вместо «отрасль» в .client-industry.
+    4. Лишние карточки просто удалите — сетка перестроится сама
+       (рассчитана на 4–6 записей).
+
+  Логотипы намеренно приводятся к одному белому цвету (см. .client-logo
+  в style.css): присланные клиентами файлы приходят в разных цветах и
+  пропорциях, и на тёмном фоне разноцветная стена читается как мусор.
+  Если у логотипа непрозрачный фон — обрежьте его, иначе будет белый
+  прямоугольник.
+============================================================ -->
+<section class="section section--tight" id="clients">
+  <div class="wrap">
+    <div class="section-head clients-head reveal">
+      <span class="eyebrow">Клиенты</span>
+      <h2>С кем мы уже работаем</h2>
+      <p>Не берём проекты «про запас» — поэтому список короткий и в нём только те, у кого решение действительно работает.</p>
+    </div>
+
+    <div class="client-wall-clip reveal">
+      <ul class="client-wall">
+        <li class="client" style="--i:0">
+          <div class="client-mark client-mark--empty">логотип</div>
+          <!-- <img class="client-logo" src="assets/logos/client-1.svg" alt="Название компании" width="160" height="40" loading="lazy" decoding="async"> -->
+          <span class="client-industry">отрасль</span>
+        </li>
+        <li class="client" style="--i:1">
+          <div class="client-mark client-mark--empty">логотип</div>
+          <!-- <img class="client-logo" src="assets/logos/client-2.svg" alt="Название компании" width="160" height="40" loading="lazy" decoding="async"> -->
+          <span class="client-industry">отрасль</span>
+        </li>
+        <li class="client" style="--i:2">
+          <div class="client-mark client-mark--empty">логотип</div>
+          <!-- <img class="client-logo" src="assets/logos/client-3.svg" alt="Название компании" width="160" height="40" loading="lazy" decoding="async"> -->
+          <span class="client-industry">отрасль</span>
+        </li>
+        <li class="client" style="--i:3">
+          <div class="client-mark client-mark--empty">логотип</div>
+          <!-- <img class="client-logo" src="assets/logos/client-4.svg" alt="Название компании" width="160" height="40" loading="lazy" decoding="async"> -->
+          <span class="client-industry">отрасль</span>
+        </li>
+        <li class="client" style="--i:4">
+          <div class="client-mark client-mark--empty">логотип</div>
+          <!-- <img class="client-logo" src="assets/logos/client-5.svg" alt="Название компании" width="160" height="40" loading="lazy" decoding="async"> -->
+          <span class="client-industry">отрасль</span>
+        </li>
+        <li class="client" style="--i:5">
+          <div class="client-mark client-mark--empty">логотип</div>
+          <!-- <img class="client-logo" src="assets/logos/client-6.svg" alt="Название компании" width="160" height="40" loading="lazy" decoding="async"> -->
+          <span class="client-industry">отрасль</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="ph-block clients-note">
+      <b>Уточнить:</b> 4–6 логотипов клиентов (SVG, прозрачный фон) и отрасль каждого. Нужно письменное согласие клиента на публикацию логотипа. Инструкция по подстановке — в комментарии над этим разделом в <code>index.html</code>.
     </div>
   </div>
 </section>
@@ -1922,14 +2200,24 @@ document.addEventListener('DOMContentLoaded', function(){
   /* ==================== 6. STAT COUNT-UP =================================
      Runs only once a .stat-num actually holds a number, so it stays dormant
      while the values are XX placeholders. Any trailing characters ("+", "%")
-     are preserved. */
+     are preserved.
+
+     Small values are deliberately excluded. Counting 0 -> 2 gives three
+     frames over a second and reads as a rendering glitch rather than motion;
+     the effect only earns its place once there are enough intermediate
+     values to look like counting. Numbers below the threshold are simply
+     shown, which is also the honest presentation for a young company. */
+
+  var COUNT_UP_MIN = 10;
 
   (function(){
     var nums = Array.prototype.slice.call(document.querySelectorAll('.stat-num'));
     if(!nums.length || !('IntersectionObserver' in window)) return;
 
     var targets = nums.filter(function(el){
-      return /^\s*\d+\s*\D{0,2}\s*$/.test(el.textContent);
+      var raw = el.textContent.trim();
+      if(!/^\d+\D{0,2}$/.test(raw)) return false;
+      return parseInt(raw, 10) >= COUNT_UP_MIN;
     });
     if(!targets.length || reducedMotion()) return;
 
@@ -2193,21 +2481,22 @@ document.addEventListener('DOMContentLoaded', function(){
   ============================================================
   CHECKLIST-BEFORE-LAUNCH — всё, что нужно вставить от Ramzur:
 
-  1. Блок «в цифрах» (hero): число проектов, лет на рынке,
-     число отраслей, число довольных клиентов.
-  2. Раздел «О компании» → карточка «Команда»: 1–2 факта,
-     вызывающих доверие (опыт, число разработчиков, ниши).
-  3. Услуга «AI-агенты» → бонус: количество дней поддержки.
-  4. Услуга «Автоматизация» → бонус: выбрать один вариант
+  1. Услуга «AI-агенты» → бонус: количество дней поддержки.
+  2. Услуга «Автоматизация» → бонус: выбрать один вариант
      (инструкция для команды / аудит второго процесса).
-  5. Услуга «Разработка ПО» → бонус: выбрать один вариант
+  3. Услуга «Разработка ПО» → бонус: выбрать один вариант
      (техдокументация / период гарантийной поддержки).
-  6. Гарантия сроков — согласовать точную юридическую
+  4. Гарантия сроков — согласовать точную юридическую
      формулировку условий компенсации.
-  7. Контакты: телефон, Telegram/WhatsApp, e-mail.
-  8. Подключить форму заявки к реальному каналу приёма
+  5. Контакты: телефон, Telegram/WhatsApp, e-mail.
+  6. Раздел «Клиенты»: 4–6 логотипов (SVG, прозрачный фон)
+     в assets/logos/ + отрасль каждого клиента. Обязательно
+     письменное согласие клиента на публикацию логотипа.
+     Пошаговая инструкция — в комментарии над разделом
+     CLIENTS / SOCIAL PROOF в этом файле.
+  7. Подключить форму заявки к реальному каналу приёма
      заявок (см. TODO-BACKEND в <script> выше).
-  9. Раздел «Портфолио/кейсы» намеренно не включён (по
+  8. Раздел «Портфолио/кейсы» намеренно не включён (по
      договорённости) — при готовности кейсов его можно
      добавить между блоками #about и #services, сохранив
      ту же сетку карточек, что в #services.
