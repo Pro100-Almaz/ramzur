@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Ramzur">
+  <title>Ramzur</title>
+  <!--
+    Favicon cut of the Ramzur mark — deliberately NOT the nav logo verbatim.
+
+    The nav mark draws 2px strokes on a 26-unit box with two grey input nodes.
+    Rasterised to 16x16 that version filled 6% of the icon and read as a blank
+    dark square in a tab. This cut is designed for the small size instead:
+      - the flow stroke is 5 units (~2.5px at 16x16) so it survives rounding
+      - the two grey nodes are dropped; three colours inside 16px is mud, and
+        amber + teal already read as the brand pair
+      - the terminal node doubles as the end of the stroke rather than sitting
+        beside it, which buys the mark its width back
+      - it sits on the brand's own dark plate so it holds on light and dark
+        browser chrome alike
+    The full three-element mark still runs in the nav and footer, where the
+    space for it exists.
+  -->
+  <rect width="32" height="32" rx="7.5" fill="#0D111C"/>
+  <path d="M7.5 9h2.5a6 6 0 0 1 6 6a6 6 0 0 0 6 6"
+        fill="none" stroke="#FFB454" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="22" cy="21" r="4.2" fill="#5EEAD4"/>
+</svg>

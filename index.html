@@ -8,20 +8,44 @@
 
 <!--
   ============================================================
-  ПЕРЕД ПУБЛИКАЦИЕЙ — ЗАМЕНИТЬ ПЛЕЙСХОЛДЕРЫ:
-  Все места, помеченные классом "ph" (пунктирная рамка) и/или
-  комментарием "УТОЧНИТЬ", содержат реальные данные компании,
-  которые нужно вставить: цифры в шапке, контакты, условия
-  гарантии, факты о команде. Список полностью — в конце файла
-  в комментарии CHECKLIST-BEFORE-LAUNCH.
+  CHECKLIST-BEFORE-LAUNCH
 
-  Форма заявки сейчас НЕ отправляет данные на сервер —
-  см. комментарий TODO-BACKEND в блоке <script>.
+  Заполнено: цифры в шапке, карточка «Команда», бонусы всех трёх
+  услуг, формулировка гарантии сроков, контакты, логотипы клиентов.
+
+  Осталось одно, но блокирующее:
+
+  1. Подключить форму заявки к реальному каналу приёма заявок.
+     Сейчас обе формы (в разделе «Контакты» и в модальном окне)
+     НИКУДА не отправляют данные — только показывают сообщение
+     об успехе локально в браузере. Точка интеграции помечена
+     комментарием TODO-BACKEND в script.js. Варианты: Telegram
+     Bot API, e-mail через backend-эндпоинт, вебхук CRM.
+     Пока это не сделано, все заявки со страницы теряются.
+
+  Отложено сознательно:
+
+  2. Раздел «Портфолио/кейсы» не включён (по договорённости на
+     этапе текста). При готовности кейсов его можно добавить
+     между блоками #clients и #services, сохранив ту же сетку
+     карточек, что в #services.
   ============================================================
 -->
 
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0D111C">
+
+<!--
+  Иконка вкладки. Три файла закрывают всё:
+    favicon.svg          — современные браузеры, масштабируется без потерь
+    favicon.ico          — Safari, старые браузеры и Windows (16 + 32 внутри)
+    apple-touch-icon.png — иконка сайта на домашнем экране iOS (180x180)
+  .ico и .png генерируются из favicon.svg командой `node build-icons.mjs`,
+  руками их править не нужно.
+-->
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -247,11 +271,11 @@
         </li>
         <li class="client" style="--i:2">
           <img class="client-logo" src="assets/logos/client-dopsy.svg" alt="Dopsy Arena" width="160" height="40" loading="lazy" decoding="async">
-          <span class="client-industry">Dopsy - аренда поля в Астане</span>
+          <span class="client-industry">Dopsy — аренда поля в Астане</span>
         </li>
         <li class="client" style="--i:3">
           <img class="client-logo" src="assets/logos/client-sabil.svg" alt="Sabil Life" width="160" height="40" loading="lazy" decoding="async">
-          <span class="client-industry">Sabil life - Платформа для мигрантов в Doha, Dubai</span>
+          <span class="client-industry">Sabil life — платформа для мигрантов в Doha и Dubai</span>
         </li>
         <li class="client" style="--i:4">
           <img class="client-logo" src="assets/logos/client-yassawi.svg" alt="Akhmet Yassawi" width="160" height="40" loading="lazy" decoding="async">

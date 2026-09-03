@@ -8,20 +8,44 @@
 
 <!--
   ============================================================
-  ПЕРЕД ПУБЛИКАЦИЕЙ — ЗАМЕНИТЬ ПЛЕЙСХОЛДЕРЫ:
-  Все места, помеченные классом "ph" (пунктирная рамка) и/или
-  комментарием "УТОЧНИТЬ", содержат реальные данные компании,
-  которые нужно вставить: цифры в шапке, контакты, условия
-  гарантии, факты о команде. Список полностью — в конце файла
-  в комментарии CHECKLIST-BEFORE-LAUNCH.
+  CHECKLIST-BEFORE-LAUNCH
 
-  Форма заявки сейчас НЕ отправляет данные на сервер —
-  см. комментарий TODO-BACKEND в блоке <script>.
+  Заполнено: цифры в шапке, карточка «Команда», бонусы всех трёх
+  услуг, формулировка гарантии сроков, контакты, логотипы клиентов.
+
+  Осталось одно, но блокирующее:
+
+  1. Подключить форму заявки к реальному каналу приёма заявок.
+     Сейчас обе формы (в разделе «Контакты» и в модальном окне)
+     НИКУДА не отправляют данные — только показывают сообщение
+     об успехе локально в браузере. Точка интеграции помечена
+     комментарием TODO-BACKEND в script.js. Варианты: Telegram
+     Bot API, e-mail через backend-эндпоинт, вебхук CRM.
+     Пока это не сделано, все заявки со страницы теряются.
+
+  Отложено сознательно:
+
+  2. Раздел «Портфолио/кейсы» не включён (по договорённости на
+     этапе текста). При готовности кейсов его можно добавить
+     между блоками #clients и #services, сохранив ту же сетку
+     карточек, что в #services.
   ============================================================
 -->
 
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0D111C">
+
+<!--
+  Иконка вкладки. Три файла закрывают всё:
+    favicon.svg          — современные браузеры, масштабируется без потерь
+    favicon.ico          — Safari, старые браузеры и Windows (16 + 32 внутри)
+    apple-touch-icon.png — иконка сайта на домашнем экране iOS (180x180)
+  .ico и .png генерируются из favicon.svg командой `node build-icons.mjs`,
+  руками их править не нужно.
+-->
+<link rel="icon" href="data:image/x-icon;base64,AAABAAIAEBAAAAEAIADuAQAAJgAAACAgAAABACAAbQMAABQCAACJUE5HDQoaCgAAAA1JSERSAAAAEAAAABAIBgAAAB/z/2EAAAGjSURBVHicnJPLS0JBFMa/ufd2b+ajrKzo/doERZsiCFoEbaJ1i4JqEUhtgha1bhGtolX0gBYtWvQXRLsC22QSWpFISEJggmJqPvJ1p1FRSrwW/lZnzsx3+ObMHAEMta51juO4dUowSAAVykCBGKF4orK8Fw65z4mmtm2FcOQQFUBlusqLKt0JIaQFldEhMHF3JuppkrA91wm9ugrBaAoWZxj7l++IJ6miOqMlWn179oRxqhm7Sz2/DtjfIpjeeYY/nFYswksq3VYm8IdTaG8Q4Q2moJY41Eg8DLUiGrQCLu4Dyi7yDn4i8MCxsQ+z4wak0xStRjNiidJX4UolU8zxmcmbs8gTjPZroISgtGFzRQrx/FQHXnsNkJkJz9Ut0tGvvwtkGmeyhzAxoINrcQ0j2u5s3mt+wM3CZvkr5Fk+eIE5qIJD21XINY4OQWrU/6+AJ5DEzPo1qp2OQs5394i476OwLvkKxfA11WiZHMsVLeoB0dS1WdmPGkYFUEptHBuvI1QK0/KJ+KdFFDUO5qKLjXM9G+eq8prsOFtlWd6IhNyn3wAAAP//ZaVyTgAAAAZJREFUAwAO4YoIMSpeOQAAAABJRU5ErkJggolQTkcNChoKAAAADUlIRFIAAAAgAAAAIAgGAAAAc3p69AAAAyJJREFUeJzEl11IU2EYx//v2eZans3EpaVbaZpGaBqBlV0EfVAQBUUfVlBWSARd1IWJRBDUVRIUjCDaRUEYXRXZhRfeWZKyVDTKr9TUmZk655mzpdvbe46fbR5xZ3P+bvae9+v5n/d9nmfnUcOP6DVJBYTgMEAyQWkGIUSNEKCUToKQFtZqohQVYyP2F/PHyUyD5xPiiVptZZOPYhlhIt66qHAZTqdjVkB0TNJ+9tZl7G3jEQEoaA8BPSc4+j5wkgoOhZEyLtkDMVOQ61KbNyTmExX3CisA9frOqqJ0MRZ2/MlYCQhZq2Z3kTzPF2fZlc4jL90ArUa6JTjdk/ja60Z7/x/0Dnmw0Jqg7TPbanYX6/y3KjluQskJk+zC+k4XCixt6BzwIBRE2xw7fq3/wNWDCYsu3J7C4+P9bTiTF4dQEG1zUAivU+HZtc04uTs0EQsKeP95GEvlUUEKjAblyZLoY03Uv1OtAvZkGLBjEz/rhHF6FXLT9Mhhx+9PRYMDpx+2IGwCFqPoWBLunDIH9G+9Ucei4y+CJWgfKH1nR12HENCfmrAKSlDkhLXtYwF9aeuVCVDkPc12d0BfRuJqKEGRgKbuwBPI3jglgGjU0KdukNrC927QiclF9wraCUW0GoJf1lxw3P85NL/WCO7SFWiiddLzxNg4bLdK0V9ZLbuXSqsz3EWQeH2AKS4K2clzIVllzEHjoQtQRWnmNmdt85G9EDp7ILT9WHAvxZnwdlk3Bkbmwu61+YDs3KziQtkxxQKc414Uveyaamt4CBpedq4uwQitMRZhFSDypmYY5x+3spNQ/q8YkgCRctsw9t2shm6oX3bOaGsXPIMOLIsAEfE6KostsuMN957IjoVFgMhAlQ22ogdS6M0ghSHrG6ptlF3H8kDSJ/azE2EiuEREa9gnGRpYOgmbANHgaHPH0uYy25zP57Oy8smLCCPa9FH6lHM7f9rY56kVkcfiHumrl5K5Xp9opCryjVVHRkQAdvR2l8OzBfjtkqJAEPoGXdSVLhaOWG4oLWe2MkXj4mNAdcHK84vT5XlWmMvzL9Pl+fP54/8AAAD//7UEv+QAAAAGSURBVAMA8hEQ9+7yCesAAAAASUVORK5CYII=" sizes="32x32">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJSYW16dXIiPgogIDx0aXRsZT5SYW16dXI8L3RpdGxlPgogIDwhLS0KICAgIEZhdmljb24gY3V0IG9mIHRoZSBSYW16dXIgbWFyayDigJQgZGVsaWJlcmF0ZWx5IE5PVCB0aGUgbmF2IGxvZ28gdmVyYmF0aW0uCgogICAgVGhlIG5hdiBtYXJrIGRyYXdzIDJweCBzdHJva2VzIG9uIGEgMjYtdW5pdCBib3ggd2l0aCB0d28gZ3JleSBpbnB1dCBub2Rlcy4KICAgIFJhc3RlcmlzZWQgdG8gMTZ4MTYgdGhhdCB2ZXJzaW9uIGZpbGxlZCA2JSBvZiB0aGUgaWNvbiBhbmQgcmVhZCBhcyBhIGJsYW5rCiAgICBkYXJrIHNxdWFyZSBpbiBhIHRhYi4gVGhpcyBjdXQgaXMgZGVzaWduZWQgZm9yIHRoZSBzbWFsbCBzaXplIGluc3RlYWQ6CiAgICAgIC0gdGhlIGZsb3cgc3Ryb2tlIGlzIDUgdW5pdHMgKH4yLjVweCBhdCAxNngxNikgc28gaXQgc3Vydml2ZXMgcm91bmRpbmcKICAgICAgLSB0aGUgdHdvIGdyZXkgbm9kZXMgYXJlIGRyb3BwZWQ7IHRocmVlIGNvbG91cnMgaW5zaWRlIDE2cHggaXMgbXVkLCBhbmQKICAgICAgICBhbWJlciArIHRlYWwgYWxyZWFkeSByZWFkIGFzIHRoZSBicmFuZCBwYWlyCiAgICAgIC0gdGhlIHRlcm1pbmFsIG5vZGUgZG91YmxlcyBhcyB0aGUgZW5kIG9mIHRoZSBzdHJva2UgcmF0aGVyIHRoYW4gc2l0dGluZwogICAgICAgIGJlc2lkZSBpdCwgd2hpY2ggYnV5cyB0aGUgbWFyayBpdHMgd2lkdGggYmFjawogICAgICAtIGl0IHNpdHMgb24gdGhlIGJyYW5kJ3Mgb3duIGRhcmsgcGxhdGUgc28gaXQgaG9sZHMgb24gbGlnaHQgYW5kIGRhcmsKICAgICAgICBicm93c2VyIGNocm9tZSBhbGlrZQogICAgVGhlIGZ1bGwgdGhyZWUtZWxlbWVudCBtYXJrIHN0aWxsIHJ1bnMgaW4gdGhlIG5hdiBhbmQgZm9vdGVyLCB3aGVyZSB0aGUKICAgIHNwYWNlIGZvciBpdCBleGlzdHMuCiAgLS0+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNy41IiBmaWxsPSIjMEQxMTFDIi8+CiAgPHBhdGggZD0iTTcuNSA5aDIuNWE2IDYgMCAwIDEgNiA2YTYgNiAwIDAgMCA2IDYiCiAgICAgICAgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZCNDU0IiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxjaXJjbGUgY3g9IjIyIiBjeT0iMjEiIHI9IjQuMiIgZmlsbD0iIzVFRUFENCIvPgo8L3N2Zz4K" type="image/svg+xml">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -870,11 +894,12 @@ p{ margin: 0; text-wrap: pretty; }
      checklist rows use */
   margin: 0 calc(-1 * var(--client-pad)) -1px;
   display: grid;
-  /* Explicit counts, all divisors of six, so the last row is never partial.
-     auto-fit looked tempting but at tablet widths it settles on five tracks
-     and strands the sixth logo alone on its own row.
-     Using 4 or 5 entries instead? Change the 6 below to that number. */
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  /* Explicit count, matched to the number of logos in the markup, so there
+     is never a dead track at the end of the row. Five across at full width;
+     three and two below, where the row may end partial — harmless, because
+     the dividers are row rules only and the wrapper clips the last one.
+     Add or remove a logo? Change the 5 here to match. */
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 .client{
   display: flex;
@@ -889,7 +914,7 @@ p{ margin: 0; text-wrap: pretty; }
   transition: background var(--dur-mid) var(--ease-out-quart);
 }
 
-@media (max-width: 1000px){
+@media (max-width: 1080px){
   .client-wall{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 620px){
@@ -949,6 +974,19 @@ p{ margin: 0; text-wrap: pretty; }
   color: var(--text-muted);
 }
 .client-industry:empty::before{ content: "отрасль"; color: var(--text-faint); }
+/* Per-logo optical balance — see the --logo-scale note above. Values are
+   derived from each mark's rendered area at a shared 34px cap:
+     glotus  4704px^2 (4:1 wordmark)  -> pulled down
+     qadam   1875px^2                 -> nudged up
+     dopsy   2035px^2                 -> reference, left alone
+     sabil   1152px^2 (1:1 square)    -> pulled up hardest
+     yassawi 1938px^2                 -> nudged up
+   Re-derive these if a logo is swapped; do not copy them onto a new mark. */
+.client-logo[src$="client-glotus.svg"]  { --logo-scale: .74; }
+.client-logo[src$="client-qadam.svg"]   { --logo-scale: 1.05; }
+.client-logo[src$="client-sabil.svg"]   { --logo-scale: 1.30; }
+.client-logo[src$="client-yassawi.svg"] { --logo-scale: 1.05; }
+
 .clients-note{ margin-top: clamp(22px, 2.6vw, 30px); }
 .clients-note code{
   font-family: var(--font-mono);
@@ -1579,9 +1617,6 @@ body.modal-open{ overflow: hidden; }
           Оставить заявку
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
         </button>
-        <button type="button" class="btn btn-ghost js-open-modal"
-          data-title="Расчёт стоимости проекта" data-sub="Расскажите коротко о задаче — пришлём ориентировочный расчёт и сроки."
-          data-placeholder="Например: нужен AI-агент для обработки заявок">Рассчитать стоимость проекта</button>
       </div>
       <div class="hero-note hero-in" style="--in:5"><span class="dot"></span> Первый созвон — в течение 24 часов после заявки</div>
     </div>
@@ -1684,7 +1719,7 @@ body.modal-open{ overflow: hidden; }
 
       <div class="team-card reveal" style="--i:1">
         <p class="team-card-title">Команда</p>
-        <p class="team-card-body">Шесть разработчиков. Все — выпускники <strong>Nazarbayev University</strong>.</p>
+        <p class="team-card-body">Команда разработчиков. Все — выпускники <strong>Nazarbayev University</strong>.</p>
         <ul class="team-disciplines">
           <li>Backend</li>
           <li>Frontend</li>
@@ -1728,41 +1763,29 @@ body.modal-open{ overflow: hidden; }
     <div class="client-wall-clip reveal">
       <ul class="client-wall">
         <li class="client" style="--i:0">
-          <div class="client-mark client-mark--empty">логотип</div>
-          <!-- <img class="client-logo" src="assets/logos/client-1.svg" alt="Название компании" width="160" height="40" loading="lazy" decoding="async"> -->
-          <span class="client-industry">отрасль</span>
+          <!-- <div class="client-mark client-mark--empty">логотип</div> -->
+          <img class="client-logo" src="assets/logos/client-glotus.svg" alt="Glotus Ltd." width="160" height="40" loading="lazy" decoding="async">
+          <span class="client-industry">Услуги грузоперевозок в Казахстан</span>
         </li>
         <li class="client" style="--i:1">
-          <div class="client-mark client-mark--empty">логотип</div>
-          <!-- <img class="client-logo" src="assets/logos/client-2.svg" alt="Название компании" width="160" height="40" loading="lazy" decoding="async"> -->
-          <span class="client-industry">отрасль</span>
+          <img class="client-logo" src="assets/logos/client-qadam.svg" alt="Qadam School" width="160" height="40" loading="lazy" decoding="async">
+          <span class="client-industry">Современная школа с обучением на английском языке</span>
         </li>
         <li class="client" style="--i:2">
-          <div class="client-mark client-mark--empty">логотип</div>
-          <!-- <img class="client-logo" src="assets/logos/client-3.svg" alt="Название компании" width="160" height="40" loading="lazy" decoding="async"> -->
-          <span class="client-industry">отрасль</span>
+          <img class="client-logo" src="assets/logos/client-dopsy.svg" alt="Dopsy Arena" width="160" height="40" loading="lazy" decoding="async">
+          <span class="client-industry">Dopsy — аренда поля в Астане</span>
         </li>
         <li class="client" style="--i:3">
-          <div class="client-mark client-mark--empty">логотип</div>
-          <!-- <img class="client-logo" src="assets/logos/client-4.svg" alt="Название компании" width="160" height="40" loading="lazy" decoding="async"> -->
-          <span class="client-industry">отрасль</span>
+          <img class="client-logo" src="assets/logos/client-sabil.svg" alt="Sabil Life" width="160" height="40" loading="lazy" decoding="async">
+          <span class="client-industry">Sabil life — платформа для мигрантов в Doha и Dubai</span>
         </li>
         <li class="client" style="--i:4">
-          <div class="client-mark client-mark--empty">логотип</div>
-          <!-- <img class="client-logo" src="assets/logos/client-5.svg" alt="Название компании" width="160" height="40" loading="lazy" decoding="async"> -->
-          <span class="client-industry">отрасль</span>
-        </li>
-        <li class="client" style="--i:5">
-          <div class="client-mark client-mark--empty">логотип</div>
-          <!-- <img class="client-logo" src="assets/logos/client-6.svg" alt="Название компании" width="160" height="40" loading="lazy" decoding="async"> -->
-          <span class="client-industry">отрасль</span>
+          <img class="client-logo" src="assets/logos/client-yassawi.svg" alt="Akhmet Yassawi" width="160" height="40" loading="lazy" decoding="async">
+          <span class="client-industry">Система контроля температуры мавзолея Ахмета Яссауи</span>
         </li>
       </ul>
     </div>
 
-    <div class="ph-block clients-note">
-      <b>Уточнить:</b> 4–6 логотипов клиентов (SVG, прозрачный фон) и отрасль каждого. Нужно письменное согласие клиента на публикацию логотипа. Инструкция по подстановке — в комментарии над этим разделом в <code>index.html</code>.
-    </div>
   </div>
 </section>
 
@@ -1793,7 +1816,7 @@ body.modal-open{ overflow: hidden; }
             <li>Интеграция с уже используемыми системами (CRM, мессенджеры, почта)</li>
             <li>Тестовый период перед полным запуском</li>
           </ul>
-          <div class="bonus"><b>Сверху:</b> обучение команды работе с агентом и <span class="ph">N дней</span> бесплатной поддержки после запуска.</div>
+          <div class="bonus"><b>Сверху:</b> обучение команды работе с агентом и <b>30 дней</b> бесплатной поддержки после запуска.</div>
         </div>
       </div>
 
@@ -1803,9 +1826,6 @@ body.modal-open{ overflow: hidden; }
           <span class="service-tag">02 · Автоматизация</span>
           <h3>Меньше ручной работы — больше времени на то, что двигает бизнес</h3>
           <p class="service-for">Для компаний, где процессы всё ещё держатся на таблицах, ручном вводе данных и разрозненных инструментах, которые не «разговаривают» друг с другом.</p>
-          <button type="button" class="btn btn-ghost service-cta js-open-modal"
-            data-title="Расчёт стоимости: автоматизация" data-sub="Опишите процесс — оценим объём работ и ориентировочный бюджет."
-            data-placeholder="Например: нужно связать CRM и бухгалтерию, сейчас переносим данные вручную">Получить расчёт стоимости</button>
         </div>
         <div class="service-detail">
           <p class="stack-label">Что входит</p>
@@ -1815,8 +1835,7 @@ body.modal-open{ overflow: hidden; }
             <li>Настройка так, чтобы решение работало без постоянного участия разработчика</li>
           </ul>
           <div class="bonus">
-            <b>Сверху:</b> готовая инструкция для команды или бесплатный аудит второго процесса.
-            <span class="ph ph-note">выбрать один вариант</span>
+            <b>Сверху:</b> готовая инструкция для команды.
           </div>
         </div>
       </div>
@@ -1827,9 +1846,6 @@ body.modal-open{ overflow: hidden; }
           <span class="service-tag">03 · Разработка ПО</span>
           <h3>Программное обеспечение под вашу задачу — не «универсальное», а ваше</h3>
           <p class="service-for">Для компаний, которым нужно решение, которого нет на рынке в готовом виде, или доработка/замена того, что уже не справляется.</p>
-          <button type="button" class="btn btn-ghost service-cta js-open-modal"
-            data-title="Расчёт стоимости: разработка ПО" data-sub="Опишите задачу — оценим объём работ и сроки."
-            data-placeholder="Например: нужен внутренний сервис для учёта заказов">Получить расчёт стоимости</button>
         </div>
         <div class="service-detail">
           <p class="stack-label">Что входит</p>
@@ -1839,8 +1855,7 @@ body.modal-open{ overflow: hidden; }
             <li>Архитектура с расчётом на рост нагрузки, а не только на «сейчас»</li>
           </ul>
           <div class="bonus">
-            <b>Сверху:</b> техническая документация проекта или период гарантийной поддержки.
-            <span class="ph ph-note">выбрать один вариант</span>
+            <b>Сверху:</b> техническая документация проекта.
           </div>
         </div>
       </div>
@@ -1862,7 +1877,6 @@ body.modal-open{ overflow: hidden; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
         <h3>Гарантия сроков</h3>
         <p>Если срок сдачи этапа сдвигается по нашей вине — компенсируем это дополнительными часами разработки или скидкой на следующий этап.</p>
-        <span class="draft-tag ph">формулировку согласовать</span>
       </div>
       <div class="guarantee reveal" style="--i:1">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"/><circle cx="12" cy="12" r="2.5"/></svg>
@@ -1950,12 +1964,9 @@ body.modal-open{ overflow: hidden; }
     <div class="contact-alt-col">
       <p class="stack-label alt-contacts-label">Другие способы связи</p>
       <div class="alt-contacts">
-        <div class="alt-contact"><span class="label">Телефон</span><span class="ph">уточнить</span></div>
-        <div class="alt-contact"><span class="label">Telegram / WhatsApp</span><span class="ph">уточнить</span></div>
-        <div class="alt-contact"><span class="label">E-mail</span><span class="ph">уточнить</span></div>
-      </div>
-      <div class="ph-block alt-contacts-note">
-        <b>Уточнить:</b> форма сейчас не подключена к CRM/мессенджеру. Перед запуском нужно связать её с реальным каналом приёма заявок (Telegram-бот, e-mail или CRM-вебхук), см. комментарий TODO-BACKEND в коде.
+        <div class="alt-contact"><span class="label">Телефон</span><span>+7 (778) 579 0993</span></div>
+        <div class="alt-contact"><span class="label">Telegram / WhatsApp</span><span>@zenith_lab / +7 (778) 579 0993</span></div>
+        <div class="alt-contact"><span class="label">E-mail</span><span>oneazamat@gmail.com</span></div>
       </div>
     </div>
   </div>

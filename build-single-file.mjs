@@ -5,7 +5,7 @@
 
   Run:  node build-single-file.mjs
 */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 
 const SRC = 'index.html';
 const OUT = 'ramzur-landing-single-file.html';
@@ -13,6 +13,21 @@ const OUT = 'ramzur-landing-single-file.html';
 const html = readFileSync(SRC, 'utf8');
 const css = readFileSync('style.css', 'utf8');
 const js = readFileSync('script.js', 'utf8');
+
+/*
+  The point of this file is that it opens with nothing beside it, so the tab
+  icons are embedded as data URIs too. Left as plain hrefs they would resolve
+  against wherever the single file happens to sit and quietly 404, leaving the
+  browser's default globe in the tab.
+*/
+const dataUri = (path, mime) =>
+  `data:${mime};base64,${readFileSync(path).toString('base64')}`;
+
+const icons = [
+  ['favicon.ico', 'image/x-icon'],
+  ['favicon.svg', 'image/svg+xml'],
+  ['apple-touch-icon.png', 'image/png'],
+];
 
 const linkTag = '<link rel="stylesheet" href="style.css">';
 const scriptTag = '<script src="script.js" defer></script>';
@@ -33,9 +48,22 @@ for (const [tag, name] of [[linkTag, 'style.css link'], [scriptTag, 'script.js t
 */
 const deferred = `<script>\ndocument.addEventListener('DOMContentLoaded', function(){\n${js}\n});\n</script>`;
 
-const bundled = html
+let bundled = html
   .replace(linkTag, `<style>\n${css}\n</style>`)
   .replace(scriptTag, deferred);
+
+for (const [file, mime] of icons) {
+  if (!existsSync(file)) {
+    console.error(`build failed: ${file} is missing — run \`node build-icons.mjs\` first`);
+    process.exit(1);
+  }
+  const before = bundled;
+  bundled = bundled.replace(`href="${file}"`, `href="${dataUri(file, mime)}"`);
+  if (bundled === before) {
+    console.error(`build failed: no href="${file}" found in ${SRC}`);
+    process.exit(1);
+  }
+}
 
 writeFileSync(OUT, bundled);
 console.log(`${OUT} — ${bundled.split('\n').length} lines, ${(bundled.length / 1024).toFixed(1)} KB`);
