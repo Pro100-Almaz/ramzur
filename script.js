@@ -1,58 +1,26 @@
-/* ==========================================================================
-   Ramzur — landing behaviour
-
-   Contents
-     0. Shared helpers
-     1. Mobile nav
-     2. Scroll-reveal
-     3. Scroll progress + nav elevation
-     4. Active-section tracking
-     5. Auto-growing textareas
-     6. Stat count-up
-     7. Form validation (shared by both forms)
-     8. Main contact form            <- TODO-BACKEND
-     9. Lead modal                   <- TODO-BACKEND
-
-   Every animated behaviour checks prefersReducedMotion and resolves to its
-   end state instead of animating.
-   ========================================================================== */
-
 /* =========================================================================
-   НАСТРОЙКА ОТПРАВКИ ЗАЯВОК В TELEGRAM  —  заполнить перед запуском
+   ОТПРАВКА ЗАЯВОК
    =========================================================================
 
-   1. Создать бота: написать @BotFather команду /newbot, получить токен
-      вида  123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-   2. Создать группу для заявок и добавить в неё бота.
-   3. Узнать chat_id группы: написать в группе любое сообщение и открыть
-        https://api.telegram.org/bot<ТОКЕН>/getUpdates
-      В ответе найти "chat":{"id":-1001234567890,...} — это и есть chat_id.
-      ВАЖНО: у групп он ОТРИЦАТЕЛЬНЫЙ и обычно начинается с -100.
-      Минус — часть значения, его нельзя терять.
-   4. Вписать оба значения ниже.
+   Страница НЕ обращается к Telegram напрямую и НЕ содержит токен бота.
+   Заявка уходит POST-запросом на /api/lead — серверную функцию в этом же
+   проекте (файл api/lead.js). Токен и id группы лежат там, в переменных
+   окружения Vercel, и в браузер не попадают.
 
-   ─────────────────────────────────────────────────────────────────────────
-   ВНИМАНИЕ, ЭТО ОСОЗНАННЫЙ КОМПРОМИСС
+   Что нужно настроить (один раз):
+     Vercel → Project → Settings → Environment Variables
+       TELEGRAM_BOT_TOKEN = токен от @BotFather
+       TELEGRAM_CHAT_ID   = id группы, отрицательный (напр. -1001234567890)
+     Добавить для Production, Preview и Development, затем сделать Redeploy:
+     переменные подхватываются только при новом деплое.
 
-   Страница статическая, поэтому токен отправляется прямо из браузера и
-   ВИДЕН ЛЮБОМУ в исходном коде. Токен = полный доступ к боту: кто угодно
-   может читать всё, что бот получил, писать от его имени и спамить в
-   группу напрямую, минуя форму. Telegram не умеет ограничивать токен по
-   домену.
-
-   Что с этим делать:
-     • бот должен быть ОТДЕЛЬНЫМ и состоять ТОЛЬКО в этой группе —
-       тогда украденный токен не даёт доступа ни к чему другому;
-     • не использовать этого бота больше нигде;
-     • при спаме: @BotFather → /revoke → вписать новый токен сюда,
-       старый мгновенно перестаёт работать;
-     • как только появится любой сервер/воркер — перенести отправку туда
-       (см. TRANSPORT ниже, менять надо одну функцию).
+   Если сайт выложен туда, где серверных функций нет (например GitHub
+   Pages), /api/lead вернёт 404 и форма покажет ошибку с прямыми
+   контактами — молча терять заявки она не будет.
    ───────────────────────────────────────────────────────────────────────── */
 
-var TELEGRAM = {
-  botToken: '8925640769:AAF8TUVYzsr62UaU4P7mOwOGv8Hn42lRW18',
-  chatId: '-5462383974',
+var LEADS = {
+  endpoint: '/api/lead',
 
   // сколько ждём ответ, прежде чем показать ошибку
   timeoutMs: 12000,
@@ -364,107 +332,44 @@ var TELEGRAM = {
      перенести отправку на свой сервер или воркер, достаточно заменить
      функцию transport() — остальной код её не касается. */
 
-  function configured(){
-    return TELEGRAM.botToken.indexOf('ВСТАВЬТЕ') === -1
-        && TELEGRAM.chatId.indexOf('ВСТАВЬТЕ') === -1
-        && !!TELEGRAM.botToken && !!TELEGRAM.chatId;
-  }
+  /* Единственное место, которое знает, КУДА уходит заявка.
+     Раньше здесь был прямой вызов api.telegram.org с токеном в URL; теперь
+     это POST на собственную серверную функцию. Заголовки и формат тела
+     свободны: запрос идёт на свой же origin, поэтому CORS и preflight
+     вообще не участвуют.
 
-  // Telegram разбирает parse_mode: HTML, поэтому пользовательский текст
-  // обязательно экранируем — иначе "<" в задаче ломает всё сообщение
-  // (Telegram вернёт 400 и заявка потеряется).
-  function esc(v){
-    return String(v == null ? '' : v)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-  }
-
-  function stamp(){
-    try{
-      return new Date().toLocaleString('ru-RU', {
-        timeZone: 'Asia/Almaty', day: '2-digit', month: '2-digit',
-        year: 'numeric', hour: '2-digit', minute: '2-digit'
-      });
-    }catch(e){
-      return new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
-    }
-  }
-
-  /* Telegram отклоняет сообщения длиннее 4096 символов, и тогда заявка
-     теряется целиком. Поле «задача» — единственное, что может быть сколь
-     угодно длинным, поэтому обрезаем именно его, оставляя место под
-     остальные строки. Обрезка помечается, чтобы было видно: текст неполный,
-     и стоит перезвонить за подробностями. */
-  var TASK_LIMIT = 3000;
-
-  function clampTask(v){
-    if(!v) return '';
-    if(v.length <= TASK_LIMIT) return v;
-    return v.slice(0, TASK_LIMIT) + '… [текст обрезан, полностью — спросить у клиента]';
-  }
-
-  function buildMessage(lead){
-    var lines = [
-      '🔔 <b>Новая заявка — Ramzur</b>',
-      '',
-      '<b>Имя:</b> ' + esc(lead.name),
-      '<b>Телефон:</b> ' + esc(lead.phone)
-    ];
-    if(lead.task) lines.push('<b>Задача:</b> ' + esc(clampTask(lead.task)));
-    lines.push('');
-    lines.push('<b>Откуда:</b> ' + esc(lead.source));
-    lines.push('<b>Время:</b> ' + esc(stamp()) + ' (Астана)');
-    if(lead.pageUrl) lines.push('<b>Страница:</b> ' + esc(lead.pageUrl));
-    if(lead.suspicious){
-      lines.push('');
-      lines.push('⚠️ <i>Форма заполнена подозрительно быстро — возможно, бот.</i>');
-    }
-    return lines.join('\n');
-  }
-
-  /* Единственное место, которое знает про Telegram.
-     Тело запроса — URLSearchParams, а не JSON, СПЕЦИАЛЬНО: с JSON браузер
-     сначала отправляет preflight OPTIONS, а api.telegram.org отвечает на
-     него 501, и запрос не уходит вообще. Form-encoded тело делает запрос
-     "простым", preflight не нужен, и POST проходит напрямую. */
-  function transport(text){
-    var url = 'https://api.telegram.org/bot' + TELEGRAM.botToken + '/sendMessage';
-    var body = new URLSearchParams({
-      chat_id: TELEGRAM.chatId,
-      text: text,
-      parse_mode: 'HTML',
-      disable_web_page_preview: 'true'
-    });
-
+     Текст сообщения намеренно НЕ собирается на клиенте: иначе кто угодно
+     мог бы отправить на /api/lead произвольный текст и писать в группу от
+     имени бота. Клиент отправляет только поля заявки. */
+  function transport(lead){
     /* Таймаут сделан гонкой двух обещаний, а не только через abort().
        Если полагаться на AbortController, то в браузере без него (или если
        запрос почему-то не реагирует на отмену) обещание не завершится
        никогда — кнопка останется заблокированной навсегда, и посетитель
-       не сможет ни повторить отправку, ни увидеть ошибку.
-       Гонка гарантирует, что интерфейс восстановится в любом случае;
-       abort() при этом всё равно вызывается, чтобы оборвать сам запрос. */
+       не сможет ни повторить отправку, ни увидеть ошибку. */
     var ctrl = ('AbortController' in window) ? new AbortController() : null;
     var timer;
 
-    var request = fetch(url, {
+    var request = fetch(LEADS.endpoint, {
       method: 'POST',
-      body: body,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(lead),
       signal: ctrl ? ctrl.signal : undefined
     }).then(function(res){
-      return res.json().catch(function(){ return { ok: false }; });
-    }).then(function(data){
-      if(!data || !data.ok){
-        throw new Error('telegram: ' + ((data && data.description) || 'unknown error'));
-      }
-      return data;
+      return res.json().catch(function(){ return null; }).then(function(data){
+        if(!res.ok || !data || !data.ok){
+          throw new Error('lead endpoint ' + res.status + ': ' +
+            ((data && data.error) || 'нет ответа'));
+        }
+        return data;
+      });
     });
 
     var timeout = new Promise(function(_, reject){
       timer = setTimeout(function(){
         if(ctrl) ctrl.abort();
-        reject(new Error('timeout после ' + TELEGRAM.timeoutMs + 'мс'));
-      }, TELEGRAM.timeoutMs);
+        reject(new Error('timeout после ' + LEADS.timeoutMs + 'мс'));
+      }, LEADS.timeoutMs);
     });
 
     return Promise.race([request, timeout]).finally(function(){
@@ -473,12 +378,7 @@ var TELEGRAM = {
   }
 
   function sendLead(lead){
-    if(!configured()){
-      return Promise.reject(new Error(
-        'Отправка заявок не настроена: впишите botToken и chatId в начале script.js'
-      ));
-    }
-    return transport(buildMessage(lead));
+    return transport(lead);
   }
 
   /* ---------- состояния формы во время отправки ---------- */
@@ -533,8 +433,18 @@ var TELEGRAM = {
       if(busy) return;                       // защита от двойной отправки
       if(!validateLead(fields)) return;
 
-      if(honeypot && honeypot.value){
-        // боту показываем то же, что человеку, но никуда не отправляем
+      var hpValue = honeypot ? honeypot.value : '';
+      if(hpValue){
+        /* Боту показываем то же, что человеку, но никуда не отправляем.
+           В консоль пишем причину: если это всё-таки живой посетитель
+           (например, браузер сам заполнил скрытое поле), то без этой
+           строки диагностировать «форма says OK, а заявок нет» почти
+           невозможно — именно так и потерялись первые заявки. */
+        if(window.console && console.warn){
+          console.warn('[Ramzur] заявка не отправлена: заполнено скрытое ' +
+            'поле-приманка (' + honeypot.name + '). Если вы человек — это баг, ' +
+            'сообщите разработчику.');
+        }
         showSuccess(form, success);
         return;
       }
@@ -549,7 +459,8 @@ var TELEGRAM = {
         task: opts.getTask(),
         source: opts.getSource(),
         pageUrl: location.href,
-        suspicious: (Date.now() - readyAt) < TELEGRAM.minFillMs
+        suspicious: (Date.now() - readyAt) < LEADS.minFillMs,
+        hp: hpValue
       }).then(function(){
         showSuccess(form, success);
       }).catch(function(err){

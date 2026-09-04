@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd /private/tmp/claude-501/-Users-almazamanzholuly-Desktop-ramzur/9a188201-58df-45ee-b1b8-730e9702ef35/scratchpad\\n# realistic getUpdates payload: bot added to a group, then a /start comma...",
-  "error": "Exit code 1\n=== extraction against a realistic payload ===\nchat_id: -1001234567890   тип: supergroup   название: Ramzur — заявки  <- ЭТО ГРУППА\nchat_id: 42   тип: private   название: Azamat\n\n=== behaviour when nothing has been sent yet ===\nОбновлений нет. Напишите в группе /start и повторите.\n\n=== behaviour on a bad token ===\nОшибка: Unauthorized",
-  "timestamp": "2026-09-04T03:30:50.956Z",
+  "tool_input_preview": "{\"command\":\"cd /Users/almazamanzholuly/Desktop/ramzur\\npython3 - <<'PYEOF'\\nimport io\\np='index.html'; s=io.open(p,encoding='utf-8').read()\\nold = '''  1. Вписать botToken и chatId в начало script.js ...",
+  "error": "Exit code 143\nCommand timed out after 2m 0s\n  ok  launch checklist updated for env vars\n=== full suite ===\n  api function (unit)      26 passed, 0 failed\n  client lead flow         32 passed, 0 failed\n  behaviour",
+  "timestamp": "2026-09-04T07:17:37.420Z",
   "retry_count": 1
 }
