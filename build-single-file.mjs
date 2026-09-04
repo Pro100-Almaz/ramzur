@@ -45,8 +45,26 @@ for (const [tag, name] of [[linkTag, 'style.css link'], [scriptTag, 'script.js t
   as-is would run it before the modal existed and leave every CTA dead.
   Wrapping in DOMContentLoaded reproduces the deferred timing regardless of
   where the tag ends up.
+
+  Only the behaviour is wrapped, though. script.js opens with the TELEGRAM
+  settings block, which touches no DOM and has no reason to be deferred —
+  and burying it inside the listener would make it closure-scoped, so the
+  bundle would behave differently from index.html and the settings could not
+  be inspected from the console. Splitting at the IIFE keeps the two builds
+  identical.
 */
-const deferred = `<script>\ndocument.addEventListener('DOMContentLoaded', function(){\n${js}\n});\n</script>`;
+const IIFE = "(function(){";
+const split = js.indexOf(IIFE);
+if (split < 0) {
+  console.error('build failed: could not find the top-level IIFE in script.js');
+  process.exit(1);
+}
+const settings = js.slice(0, split);   // TELEGRAM config, stays at top level
+const behaviour = js.slice(split);     // everything else, deferred
+
+const deferred = `<script>\n${settings}\n`
+  + `document.addEventListener('DOMContentLoaded', function(){\n${behaviour}\n});\n`
+  + `</script>`;
 
 let bundled = html
   .replace(linkTag, `<style>\n${css}\n</style>`)

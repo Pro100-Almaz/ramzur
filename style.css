@@ -889,10 +889,15 @@ p{ margin: 0; text-wrap: pretty; }
      invert(1) then lifts it to white — works for any source colour */
   filter: brightness(0) invert(1);
   opacity: .72;
-  /* per-logo optical balance: a wide wordmark and a compact square mark read
-     as different visual weights at the same height, so each can be nudged
-     with style="--logo-scale: .9" on the img without touching this rule */
+  /* Per-logo optical balance: a wide wordmark and a compact square mark read
+     as different visual weights at the same height, so each is nudged via
+     --logo-scale (values set further down, per src).
+
+     transform-origin pins the LEFT edge. By default scale() works about the
+     centre, which insets a scaled-down logo — the first mark in the row then
+     sits ~18px right of the section heading it is supposed to align with. */
   scale: var(--logo-scale, 1);
+  transform-origin: 0 50%;
   transition:
     opacity var(--dur-mid) var(--ease-out-quart),
     scale var(--dur-mid) var(--ease-out-quint);
@@ -1151,6 +1156,75 @@ p{ margin: 0; text-wrap: pretty; }
   background: var(--error-wash);
 }
 .form-field.error label{ color: var(--error); }
+
+/* ---------- Honeypot ----------
+   Visually gone, but still a real rendered field: display:none and
+   visibility:hidden are both patterns spam bots know to skip. */
+.hp{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ---------- Send failure ----------
+   Warm red rather than the brand amber: amber already means "placeholder,
+   fill me in" everywhere else on this page, so reusing it for a failure
+   would collide with an established meaning. */
+.form-error{
+  border: 1px solid var(--error);
+  border-radius: var(--radius-sm);
+  background: var(--error-wash);
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  font-size: 14.5px;
+  color: var(--text-muted);
+  animation: successIn var(--dur-slow) var(--ease-out-expo) both;
+}
+.form-error-title{
+  color: var(--error);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.form-error-contacts{
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 14px;
+}
+.form-error-contacts a{
+  color: var(--text);
+  border-bottom: 1px solid var(--line-strong);
+  padding-bottom: 1px;
+  transition: border-color var(--dur-fast) var(--ease-out-quart),
+              color var(--dur-fast) var(--ease-out-quart);
+}
+.form-error-contacts a:hover{ color: var(--amber); border-bottom-color: var(--amber); }
+
+/* ---------- Submit in flight ----------
+   The label change is what actually communicates the state; the ring is
+   secondary, so it is the part that disappears under reduced motion. */
+.btn[data-sending]{
+  opacity: 1;                 /* overrides the generic :disabled dimming */
+  cursor: progress;
+  gap: 12px;
+}
+.btn[data-sending]::before{
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: btnSpin .7s linear infinite;
+}
+@keyframes btnSpin{ to{ transform: rotate(360deg); } }
 
 .form-success{
   display: none;
@@ -1483,6 +1557,8 @@ body.modal-open{ overflow: hidden; }
 
   /* crossfade instead of movement */
   .form-success.show{ animation: none; }
+  .form-error{ animation: none; }
+  .btn[data-sending]::before{ animation: none; opacity: .45; border-top-color: currentColor; }
   .form-success.show .form-success-mark path{ animation: none; stroke-dashoffset: 0; }
   .modal-overlay.open .modal-head > *{ animation: none; opacity: 1; transform: none; }
   .modal{ filter: none; transform: none; }

@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd /Users/almazamanzholuly/Desktop/ramzur\\npython3 - <<'PYEOF'\\nimport io, re\\np='index.html'; s=io.open(p,encoding='utf-8').read()\\ndef rep(old,new,label):\\n    global s\\n    assert s.cou...",
-  "error": "Exit code 1\n  ok  team card content\nTraceback (most recent call last):\n  File \"<stdin>\", line 24, in <module>\nTypeError: rep() missing 1 required positional argument: 'label'",
-  "timestamp": "2026-09-02T13:36:24.325Z",
+  "tool_input_preview": "{\"command\":\"cd /private/tmp/claude-501/-Users-almazamanzholuly-Desktop-ramzur/9a188201-58df-45ee-b1b8-730e9702ef35/scratchpad\\n# realistic getUpdates payload: bot added to a group, then a /start comma...",
+  "error": "Exit code 1\n=== extraction against a realistic payload ===\nchat_id: -1001234567890   тип: supergroup   название: Ramzur — заявки  <- ЭТО ГРУППА\nchat_id: 42   тип: private   название: Azamat\n\n=== behaviour when nothing has been sent yet ===\nОбновлений нет. Напишите в группе /start и повторите.\n\n=== behaviour on a bad token ===\nОшибка: Unauthorized",
+  "timestamp": "2026-09-04T03:30:50.956Z",
   "retry_count": 1
 }

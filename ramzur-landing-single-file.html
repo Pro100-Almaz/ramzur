@@ -15,13 +15,13 @@
 
   Осталось одно, но блокирующее:
 
-  1. Подключить форму заявки к реальному каналу приёма заявок.
-     Сейчас обе формы (в разделе «Контакты» и в модальном окне)
-     НИКУДА не отправляют данные — только показывают сообщение
-     об успехе локально в браузере. Точка интеграции помечена
-     комментарием TODO-BACKEND в script.js. Варианты: Telegram
-     Bot API, e-mail через backend-эндпоинт, вебхук CRM.
-     Пока это не сделано, все заявки со страницы теряются.
+  1. Вписать botToken и chatId в начало script.js (блок TELEGRAM).
+     Отправка заявок в Telegram уже реализована и протестирована,
+     но без этих двух значений формы показывают ошибку вместо
+     отправки — специально, чтобы незаполненный конфиг нельзя
+     было выложить незаметно и молча терять заявки.
+     Пошаговая инструкция — в комментарии над блоком TELEGRAM
+     в script.js и в README, раздел «Отправка заявок в Telegram».
 
   Отложено сознательно:
 
@@ -944,10 +944,15 @@ p{ margin: 0; text-wrap: pretty; }
      invert(1) then lifts it to white — works for any source colour */
   filter: brightness(0) invert(1);
   opacity: .72;
-  /* per-logo optical balance: a wide wordmark and a compact square mark read
-     as different visual weights at the same height, so each can be nudged
-     with style="--logo-scale: .9" on the img without touching this rule */
+  /* Per-logo optical balance: a wide wordmark and a compact square mark read
+     as different visual weights at the same height, so each is nudged via
+     --logo-scale (values set further down, per src).
+
+     transform-origin pins the LEFT edge. By default scale() works about the
+     centre, which insets a scaled-down logo — the first mark in the row then
+     sits ~18px right of the section heading it is supposed to align with. */
   scale: var(--logo-scale, 1);
+  transform-origin: 0 50%;
   transition:
     opacity var(--dur-mid) var(--ease-out-quart),
     scale var(--dur-mid) var(--ease-out-quint);
@@ -1206,6 +1211,75 @@ p{ margin: 0; text-wrap: pretty; }
   background: var(--error-wash);
 }
 .form-field.error label{ color: var(--error); }
+
+/* ---------- Honeypot ----------
+   Visually gone, but still a real rendered field: display:none and
+   visibility:hidden are both patterns spam bots know to skip. */
+.hp{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ---------- Send failure ----------
+   Warm red rather than the brand amber: amber already means "placeholder,
+   fill me in" everywhere else on this page, so reusing it for a failure
+   would collide with an established meaning. */
+.form-error{
+  border: 1px solid var(--error);
+  border-radius: var(--radius-sm);
+  background: var(--error-wash);
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  font-size: 14.5px;
+  color: var(--text-muted);
+  animation: successIn var(--dur-slow) var(--ease-out-expo) both;
+}
+.form-error-title{
+  color: var(--error);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.form-error-contacts{
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 14px;
+}
+.form-error-contacts a{
+  color: var(--text);
+  border-bottom: 1px solid var(--line-strong);
+  padding-bottom: 1px;
+  transition: border-color var(--dur-fast) var(--ease-out-quart),
+              color var(--dur-fast) var(--ease-out-quart);
+}
+.form-error-contacts a:hover{ color: var(--amber); border-bottom-color: var(--amber); }
+
+/* ---------- Submit in flight ----------
+   The label change is what actually communicates the state; the ring is
+   secondary, so it is the part that disappears under reduced motion. */
+.btn[data-sending]{
+  opacity: 1;                 /* overrides the generic :disabled dimming */
+  cursor: progress;
+  gap: 12px;
+}
+.btn[data-sending]::before{
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: btnSpin .7s linear infinite;
+}
+@keyframes btnSpin{ to{ transform: rotate(360deg); } }
 
 .form-success{
   display: none;
@@ -1538,6 +1612,8 @@ body.modal-open{ overflow: hidden; }
 
   /* crossfade instead of movement */
   .form-success.show{ animation: none; }
+  .form-error{ animation: none; }
+  .btn[data-sending]::before{ animation: none; opacity: .45; border-top-color: currentColor; }
   .form-success.show .form-success-mark path{ animation: none; stroke-dashoffset: 0; }
   .modal-overlay.open .modal-head > *{ animation: none; opacity: 1; transform: none; }
   .modal{ filter: none; transform: none; }
@@ -1732,25 +1808,27 @@ body.modal-open{ overflow: hidden; }
 </section>
 
 <!-- ============ CLIENTS / SOCIAL PROOF ============
-  Каждая запись = логотип + отрасль. Отрасль здесь не украшение: она
-  превращает набор логотипов в конкретное утверждение («работаем в
-  логистике»), а не в безымянную «стену доверия».
+  Каждая запись = логотип + чем занимается клиент. Второе здесь не
+  украшение: оно превращает набор логотипов в конкретное утверждение
+  («работаем в логистике»), а не в безымянную «стену доверия».
 
-  КАК ПОДСТАВИТЬ РЕАЛЬНЫЕ ДАННЫЕ (по одной строке на клиента):
-    1. Положите логотип в  assets/logos/  — лучше SVG с прозрачным фоном
-       (PNG подойдёт, но нужен @2x для retina).
-    2. В нужной карточке замените блок
-         <div class="client-mark client-mark--empty">…</div>
-       на закомментированный <img> ниже него, поправив src и alt.
-    3. Впишите отрасль вместо «отрасль» в .client-industry.
-    4. Лишние карточки просто удалите — сетка перестроится сама
-       (рассчитана на 4–6 записей).
+  КАК ДОБАВИТЬ ЕЩЁ ОДНОГО КЛИЕНТА:
+    1. Положить логотип в  assets/logos/  — SVG с прозрачным фоном.
+       Непрозрачная подложка превратится в белый прямоугольник:
+       логотипы приводятся к одному белому цвету, см. .client-logo.
+    2. Скопировать любой существующий <li class="client">, поменять
+       src и alt у <img>, вписать описание в .client-industry.
+    3. ВАЖНО: поменять число колонок в .client-wall (style.css) —
+       сейчас там repeat(5, …) под пять логотипов. Иначе в ряду
+       останется пустая колонка.
+    4. Пересчитать --logo-scale для нового логотипа: одинаковая
+       высота ещё не значит одинаковый вес. Широкий текстовый
+       логотип занимает в разы больше площади, чем квадратный знак.
+       Значения для текущих пяти — в style.css, копировать их на
+       новый логотип нельзя.
 
-  Логотипы намеренно приводятся к одному белому цвету (см. .client-logo
-  в style.css): присланные клиентами файлы приходят в разных цветах и
-  пропорциях, и на тёмном фоне разноцветная стена читается как мусор.
-  Если у логотипа непрозрачный фон — обрежьте его, иначе будет белый
-  прямоугольник.
+  Если логотипа пока нет, вместо <img> можно поставить заглушку:
+    <div class="client-mark client-mark--empty">логотип</div>
 ============================================================ -->
 <section class="section section--tight" id="clients">
   <div class="wrap">
@@ -1938,7 +2016,32 @@ body.modal-open{ overflow: hidden; }
         <span>Заявка получена. Свяжемся с вами в течение 24 часов.</span>
       </div>
 
+      <!--
+        Показывается, если отправка не удалась. Кроме повторной попытки
+        сразу даёт прямые контакты: заявка не должна упираться в тупик
+        из-за нашей сети или упавшего Telegram.
+      -->
+      <div class="form-error" id="formError" role="alert" hidden>
+        <p class="form-error-title">Не удалось отправить заявку</p>
+        <p>Нажмите «Отправить заявку» ещё раз или напишите нам напрямую:</p>
+        <ul class="form-error-contacts">
+          <li><a href="https://t.me/zenith_lab">Telegram&nbsp;@zenith_lab</a></li>
+          <li><a href="tel:+77785790993">+7&nbsp;(778)&nbsp;579&nbsp;0993</a></li>
+          <li><a href="mailto:oneazamat@gmail.com">oneazamat@gmail.com</a></li>
+        </ul>
+      </div>
+
       <form id="leadForm" novalidate>
+        <!--
+          Приманка для ботов: скрыта визуально, недоступна с клавиатуры и
+          для скринридеров, поэтому заполнить её может только автозаполнялка
+          спам-бота. Не display:none — часть ботов такие поля пропускает.
+        -->
+        <div class="hp" aria-hidden="true">
+          <label for="leadCompany">Не заполняйте это поле</label>
+          <input class="hp-field" type="text" id="leadCompany" name="company"
+                 tabindex="-1" autocomplete="off">
+        </div>
         <div class="form-field">
           <label for="name">Имя <span class="req" aria-hidden="true">*</span></label>
           <input type="text" id="name" name="name" required aria-required="true"
@@ -1953,7 +2056,7 @@ body.modal-open{ overflow: hidden; }
         </div>
         <div class="form-field">
           <label for="task">Кратко опишите задачу <span class="opt">необязательно</span></label>
-          <textarea id="task" name="task" rows="3" data-autogrow
+          <textarea id="task" name="task" rows="3" data-autogrow maxlength="3000"
             placeholder="Например: сотрудники вручную переносят заявки из мессенджера в таблицу"></textarea>
         </div>
         <button type="submit" class="btn btn-primary btn-block">Отправить заявку</button>
@@ -2004,7 +2107,6 @@ body.modal-open{ overflow: hidden; }
 </footer>
 
 <script>
-document.addEventListener('DOMContentLoaded', function(){
 /* ==========================================================================
    Ramzur — landing behaviour
 
@@ -2024,6 +2126,53 @@ document.addEventListener('DOMContentLoaded', function(){
    end state instead of animating.
    ========================================================================== */
 
+/* =========================================================================
+   НАСТРОЙКА ОТПРАВКИ ЗАЯВОК В TELEGRAM  —  заполнить перед запуском
+   =========================================================================
+
+   1. Создать бота: написать @BotFather команду /newbot, получить токен
+      вида  123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   2. Создать группу для заявок и добавить в неё бота.
+   3. Узнать chat_id группы: написать в группе любое сообщение и открыть
+        https://api.telegram.org/bot<ТОКЕН>/getUpdates
+      В ответе найти "chat":{"id":-1001234567890,...} — это и есть chat_id.
+      ВАЖНО: у групп он ОТРИЦАТЕЛЬНЫЙ и обычно начинается с -100.
+      Минус — часть значения, его нельзя терять.
+   4. Вписать оба значения ниже.
+
+   ─────────────────────────────────────────────────────────────────────────
+   ВНИМАНИЕ, ЭТО ОСОЗНАННЫЙ КОМПРОМИСС
+
+   Страница статическая, поэтому токен отправляется прямо из браузера и
+   ВИДЕН ЛЮБОМУ в исходном коде. Токен = полный доступ к боту: кто угодно
+   может читать всё, что бот получил, писать от его имени и спамить в
+   группу напрямую, минуя форму. Telegram не умеет ограничивать токен по
+   домену.
+
+   Что с этим делать:
+     • бот должен быть ОТДЕЛЬНЫМ и состоять ТОЛЬКО в этой группе —
+       тогда украденный токен не даёт доступа ни к чему другому;
+     • не использовать этого бота больше нигде;
+     • при спаме: @BotFather → /revoke → вписать новый токен сюда,
+       старый мгновенно перестаёт работать;
+     • как только появится любой сервер/воркер — перенести отправку туда
+       (см. TRANSPORT ниже, менять надо одну функцию).
+   ───────────────────────────────────────────────────────────────────────── */
+
+var TELEGRAM = {
+  botToken: '8925640769:AAF8TUVYzsr62UaU4P7mOwOGv8Hn42lRW18',
+  chatId: '-5462383974',
+
+  // сколько ждём ответ, прежде чем показать ошибку
+  timeoutMs: 12000,
+
+  // если форма отправлена быстрее — помечаем заявку как подозрительную,
+  // но всё равно доставляем: лучше лишняя пометка, чем потерянный клиент
+  minFillMs: 1200
+};
+
+
+document.addEventListener('DOMContentLoaded', function(){
 (function(){
   'use strict';
 
@@ -2032,10 +2181,14 @@ document.addEventListener('DOMContentLoaded', function(){
   var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   function reducedMotion(){ return motionQuery.matches; }
 
+  /* Every entry excludes tabindex="-1" so programmatically-unfocusable
+     elements can never be a focus-trap boundary. The honeypot field is an
+     <input>, so without this it would qualify as a trap edge and Tab could
+     land the visitor on an invisible field. */
   var FOCUSABLE = [
     'a[href]', 'button:not([disabled])', 'input:not([disabled])',
-    'textarea:not([disabled])', 'select:not([disabled])', '[tabindex]:not([tabindex="-1"])'
-  ].join(',');
+    'textarea:not([disabled])', 'select:not([disabled])', '[tabindex]'
+  ].map(function(sel){ return sel + ':not([tabindex="-1"])'; }).join(',');
 
   function $(id){ return document.getElementById(id); }
 
@@ -2316,16 +2469,220 @@ document.addEventListener('DOMContentLoaded', function(){
     success.focus();
   }
 
-  /* ---------------------------------------------------------------
-     TODO-BACKEND:
-     Обе формы ниже (основная и модальная) пока не отправляют данные
-     никуда — только показывают сообщение об успехе локально в
-     браузере. Перед запуском нужно подключить реальную отправку,
-     например:
-       - Telegram Bot API (webhook на бота компании)
-       - e-mail сервис (напр. через простой backend-эндпоинт)
-       - CRM webhook (amoCRM, Bitrix24 и т.п.)
-     --------------------------------------------------------------- */
+  /* ==================== 7b. LEAD DELIVERY ================================
+     Сборка сообщения, отправка в Telegram и состояния формы во время
+     отправки. Всё, что связано с транспортом, живёт здесь: чтобы позже
+     перенести отправку на свой сервер или воркер, достаточно заменить
+     функцию transport() — остальной код её не касается. */
+
+  function configured(){
+    return TELEGRAM.botToken.indexOf('ВСТАВЬТЕ') === -1
+        && TELEGRAM.chatId.indexOf('ВСТАВЬТЕ') === -1
+        && !!TELEGRAM.botToken && !!TELEGRAM.chatId;
+  }
+
+  // Telegram разбирает parse_mode: HTML, поэтому пользовательский текст
+  // обязательно экранируем — иначе "<" в задаче ломает всё сообщение
+  // (Telegram вернёт 400 и заявка потеряется).
+  function esc(v){
+    return String(v == null ? '' : v)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function stamp(){
+    try{
+      return new Date().toLocaleString('ru-RU', {
+        timeZone: 'Asia/Almaty', day: '2-digit', month: '2-digit',
+        year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+    }catch(e){
+      return new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+    }
+  }
+
+  /* Telegram отклоняет сообщения длиннее 4096 символов, и тогда заявка
+     теряется целиком. Поле «задача» — единственное, что может быть сколь
+     угодно длинным, поэтому обрезаем именно его, оставляя место под
+     остальные строки. Обрезка помечается, чтобы было видно: текст неполный,
+     и стоит перезвонить за подробностями. */
+  var TASK_LIMIT = 3000;
+
+  function clampTask(v){
+    if(!v) return '';
+    if(v.length <= TASK_LIMIT) return v;
+    return v.slice(0, TASK_LIMIT) + '… [текст обрезан, полностью — спросить у клиента]';
+  }
+
+  function buildMessage(lead){
+    var lines = [
+      '🔔 <b>Новая заявка — Ramzur</b>',
+      '',
+      '<b>Имя:</b> ' + esc(lead.name),
+      '<b>Телефон:</b> ' + esc(lead.phone)
+    ];
+    if(lead.task) lines.push('<b>Задача:</b> ' + esc(clampTask(lead.task)));
+    lines.push('');
+    lines.push('<b>Откуда:</b> ' + esc(lead.source));
+    lines.push('<b>Время:</b> ' + esc(stamp()) + ' (Астана)');
+    if(lead.pageUrl) lines.push('<b>Страница:</b> ' + esc(lead.pageUrl));
+    if(lead.suspicious){
+      lines.push('');
+      lines.push('⚠️ <i>Форма заполнена подозрительно быстро — возможно, бот.</i>');
+    }
+    return lines.join('\n');
+  }
+
+  /* Единственное место, которое знает про Telegram.
+     Тело запроса — URLSearchParams, а не JSON, СПЕЦИАЛЬНО: с JSON браузер
+     сначала отправляет preflight OPTIONS, а api.telegram.org отвечает на
+     него 501, и запрос не уходит вообще. Form-encoded тело делает запрос
+     "простым", preflight не нужен, и POST проходит напрямую. */
+  function transport(text){
+    var url = 'https://api.telegram.org/bot' + TELEGRAM.botToken + '/sendMessage';
+    var body = new URLSearchParams({
+      chat_id: TELEGRAM.chatId,
+      text: text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: 'true'
+    });
+
+    /* Таймаут сделан гонкой двух обещаний, а не только через abort().
+       Если полагаться на AbortController, то в браузере без него (или если
+       запрос почему-то не реагирует на отмену) обещание не завершится
+       никогда — кнопка останется заблокированной навсегда, и посетитель
+       не сможет ни повторить отправку, ни увидеть ошибку.
+       Гонка гарантирует, что интерфейс восстановится в любом случае;
+       abort() при этом всё равно вызывается, чтобы оборвать сам запрос. */
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    var timer;
+
+    var request = fetch(url, {
+      method: 'POST',
+      body: body,
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function(res){
+      return res.json().catch(function(){ return { ok: false }; });
+    }).then(function(data){
+      if(!data || !data.ok){
+        throw new Error('telegram: ' + ((data && data.description) || 'unknown error'));
+      }
+      return data;
+    });
+
+    var timeout = new Promise(function(_, reject){
+      timer = setTimeout(function(){
+        if(ctrl) ctrl.abort();
+        reject(new Error('timeout после ' + TELEGRAM.timeoutMs + 'мс'));
+      }, TELEGRAM.timeoutMs);
+    });
+
+    return Promise.race([request, timeout]).finally(function(){
+      clearTimeout(timer);
+    });
+  }
+
+  function sendLead(lead){
+    if(!configured()){
+      return Promise.reject(new Error(
+        'Отправка заявок не настроена: впишите botToken и chatId в начале script.js'
+      ));
+    }
+    return transport(buildMessage(lead));
+  }
+
+  /* ---------- состояния формы во время отправки ---------- */
+
+  function submitButton(form){ return form.querySelector('button[type="submit"]'); }
+
+  function setSending(form, on){
+    var btn = submitButton(form);
+    if(!btn) return;
+    if(on){
+      if(!btn.dataset.label) btn.dataset.label = btn.textContent.trim();
+      btn.disabled = true;
+      btn.dataset.sending = 'true';
+      btn.setAttribute('aria-busy', 'true');
+      btn.textContent = 'Отправляем…';
+    }else{
+      btn.disabled = false;
+      delete btn.dataset.sending;
+      btn.removeAttribute('aria-busy');
+      if(btn.dataset.label) btn.textContent = btn.dataset.label;
+    }
+  }
+
+  function errorBox(form){
+    return form.parentNode.querySelector('.form-error');
+  }
+
+  function showError(form){
+    var box = errorBox(form);
+    if(box) box.hidden = false;
+  }
+
+  function hideError(form){
+    var box = errorBox(form);
+    if(box) box.hidden = true;
+  }
+
+  /* Общий обработчик отправки для обеих форм. */
+  function handleSubmit(opts){
+    var form = opts.form;
+    var success = opts.success;
+    var fields = opts.fields;
+    var readyAt = Date.now();
+    var busy = false;
+
+    // приманка для ботов: настоящий посетитель это поле не видит и не
+    // может в него попасть табом, поэтому заполненное поле = бот
+    var honeypot = form.querySelector('.hp-field');
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      if(busy) return;                       // защита от двойной отправки
+      if(!validateLead(fields)) return;
+
+      if(honeypot && honeypot.value){
+        // боту показываем то же, что человеку, но никуда не отправляем
+        showSuccess(form, success);
+        return;
+      }
+
+      hideError(form);
+      busy = true;
+      setSending(form, true);
+
+      sendLead({
+        name: opts.getName(),
+        phone: opts.getPhone(),
+        task: opts.getTask(),
+        source: opts.getSource(),
+        pageUrl: location.href,
+        suspicious: (Date.now() - readyAt) < TELEGRAM.minFillMs
+      }).then(function(){
+        showSuccess(form, success);
+      }).catch(function(err){
+        // ошибку показываем человеку, подробность — в консоль для нас
+        if(window.console && console.error) console.error('[Ramzur] ' + err.message);
+        setSending(form, false);
+        showError(form);
+      }).finally(function(){
+        busy = false;
+      });
+    });
+
+    return {
+      reset: function(){
+        busy = false;
+        readyAt = Date.now();
+        setSending(form, false);
+        hideError(form);
+        if(honeypot) honeypot.value = '';
+      }
+    };
+  }
 
   /* ==================== 8. MAIN CONTACT FORM ============================= */
 
@@ -2337,17 +2694,14 @@ document.addEventListener('DOMContentLoaded', function(){
     var fields = [$('name'), $('phone')].filter(Boolean);
     clearErrorOnInput(fields);
 
-    form.addEventListener('submit', function(e){
-      e.preventDefault();
-      if(!validateLead(fields)) return;
-
-      // Пример точки интеграции:
-      // fetch('/api/lead', { method:'POST', body: JSON.stringify({
-      //   name: $('name').value, phone: $('phone').value,
-      //   task: $('task').value
-      // }) })
-
-      showSuccess(form, success);
+    handleSubmit({
+      form: form,
+      success: success,
+      fields: fields,
+      getName: function(){ return $('name').value.trim(); },
+      getPhone: function(){ return $('phone').value.trim(); },
+      getTask: function(){ return $('task').value.trim(); },
+      getSource: function(){ return 'Форма в разделе «Контакты»'; }
     });
   })();
 
@@ -2375,6 +2729,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var lastFocused = null;
     var lastTrigger = null;
     var closeTimer = null;
+    var currentSource = '';
 
     var DEFAULT_TITLE = 'Оставьте заявку';
     var DEFAULT_SUB = 'Заполните два поля — свяжемся с вами в течение 24 часов.';
@@ -2386,6 +2741,11 @@ document.addEventListener('DOMContentLoaded', function(){
     function openModal(trigger){
       clearTimeout(closeTimer);
 
+      // the CTA's own wording is the most useful "where did this come from"
+      // we can put in the notification
+      currentSource = (trigger.dataset.title || DEFAULT_TITLE)
+        + ' (кнопка «' + trigger.textContent.trim().replace(/\s+/g, ' ') + '»)';
+
       titleEl.textContent = trigger.dataset.title || DEFAULT_TITLE;
       subEl.textContent = trigger.dataset.sub || DEFAULT_SUB;
       taskField.placeholder = trigger.dataset.placeholder || 'Пара предложений о задаче';
@@ -2396,6 +2756,9 @@ document.addEventListener('DOMContentLoaded', function(){
       taskField.value = '';
       resetGrow(taskField);
       fields.forEach(function(f){ f.value = ''; markInvalid(f, false); });
+      // clears any error left from a previous failed attempt, re-enables the
+      // button and restarts the fill timer for the spam check
+      if(submitter) submitter.reset();   // assigned below; openModal runs after
 
       // Both are recorded: activeElement is the more accurate return point
       // for keyboard users, but Safari does not focus a button when it is
@@ -2470,16 +2833,14 @@ document.addEventListener('DOMContentLoaded', function(){
       }
     });
 
-    form.addEventListener('submit', function(e){
-      e.preventDefault();
-      if(!validateLead(fields)) return;
-
-      // Пример точки интеграции:
-      // fetch('/api/lead', { method:'POST', body: JSON.stringify({
-      //   name: nameField.value, phone: phoneField.value, task: taskField.value
-      // }) })
-
-      showSuccess(form, success);
+    var submitter = handleSubmit({
+      form: form,
+      success: success,
+      fields: fields,
+      getName: function(){ return nameField.value.trim(); },
+      getPhone: function(){ return phoneField.value.trim(); },
+      getTask: function(){ return taskField.value.trim(); },
+      getSource: function(){ return currentSource || DEFAULT_TITLE; }
     });
   })();
 
@@ -2539,7 +2900,32 @@ document.addEventListener('DOMContentLoaded', function(){
         <span>Заявка получена. Свяжемся с вами в течение 24 часов.</span>
       </div>
 
+        <!--
+          Показывается, если отправка не удалась. Кроме повторной попытки
+          сразу даёт прямые контакты: заявка не должна упираться в тупик
+          из-за нашей сети или упавшего Telegram.
+        -->
+        <div class="form-error" id="modalError" role="alert" hidden>
+          <p class="form-error-title">Не удалось отправить заявку</p>
+          <p>Нажмите «Отправить заявку» ещё раз или напишите нам напрямую:</p>
+          <ul class="form-error-contacts">
+            <li><a href="https://t.me/zenith_lab">Telegram&nbsp;@zenith_lab</a></li>
+            <li><a href="tel:+77785790993">+7&nbsp;(778)&nbsp;579&nbsp;0993</a></li>
+            <li><a href="mailto:oneazamat@gmail.com">oneazamat@gmail.com</a></li>
+          </ul>
+        </div>
+
       <form id="modalForm" novalidate>
+        <!--
+          Приманка для ботов: скрыта визуально, недоступна с клавиатуры и
+          для скринридеров, поэтому заполнить её может только автозаполнялка
+          спам-бота. Не display:none — часть ботов такие поля пропускает.
+        -->
+        <div class="hp" aria-hidden="true">
+          <label for="modalCompany">Не заполняйте это поле</label>
+          <input class="hp-field" type="text" id="modalCompany" name="company"
+                 tabindex="-1" autocomplete="off">
+        </div>
         <div class="form-field">
           <label for="modalName">Имя <span class="req" aria-hidden="true">*</span></label>
           <input type="text" id="modalName" name="name" required aria-required="true"
@@ -2554,7 +2940,7 @@ document.addEventListener('DOMContentLoaded', function(){
         </div>
         <div class="form-field">
           <label for="modalTask">Кратко опишите задачу <span class="opt">необязательно</span></label>
-          <textarea id="modalTask" name="task" rows="3" data-autogrow></textarea>
+          <textarea id="modalTask" name="task" rows="3" data-autogrow maxlength="3000"></textarea>
         </div>
         <button type="submit" class="btn btn-primary btn-block">Отправить заявку</button>
         <p class="form-note">Отправляем без спама — только по вашей задаче.</p>

@@ -17,6 +17,51 @@
    end state instead of animating.
    ========================================================================== */
 
+/* =========================================================================
+   НАСТРОЙКА ОТПРАВКИ ЗАЯВОК В TELEGRAM  —  заполнить перед запуском
+   =========================================================================
+
+   1. Создать бота: написать @BotFather команду /newbot, получить токен
+      вида  123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   2. Создать группу для заявок и добавить в неё бота.
+   3. Узнать chat_id группы: написать в группе любое сообщение и открыть
+        https://api.telegram.org/bot<ТОКЕН>/getUpdates
+      В ответе найти "chat":{"id":-1001234567890,...} — это и есть chat_id.
+      ВАЖНО: у групп он ОТРИЦАТЕЛЬНЫЙ и обычно начинается с -100.
+      Минус — часть значения, его нельзя терять.
+   4. Вписать оба значения ниже.
+
+   ─────────────────────────────────────────────────────────────────────────
+   ВНИМАНИЕ, ЭТО ОСОЗНАННЫЙ КОМПРОМИСС
+
+   Страница статическая, поэтому токен отправляется прямо из браузера и
+   ВИДЕН ЛЮБОМУ в исходном коде. Токен = полный доступ к боту: кто угодно
+   может читать всё, что бот получил, писать от его имени и спамить в
+   группу напрямую, минуя форму. Telegram не умеет ограничивать токен по
+   домену.
+
+   Что с этим делать:
+     • бот должен быть ОТДЕЛЬНЫМ и состоять ТОЛЬКО в этой группе —
+       тогда украденный токен не даёт доступа ни к чему другому;
+     • не использовать этого бота больше нигде;
+     • при спаме: @BotFather → /revoke → вписать новый токен сюда,
+       старый мгновенно перестаёт работать;
+     • как только появится любой сервер/воркер — перенести отправку туда
+       (см. TRANSPORT ниже, менять надо одну функцию).
+   ───────────────────────────────────────────────────────────────────────── */
+
+var TELEGRAM = {
+  botToken: '8925640769:AAF8TUVYzsr62UaU4P7mOwOGv8Hn42lRW18',
+  chatId: '-5462383974',
+
+  // сколько ждём ответ, прежде чем показать ошибку
+  timeoutMs: 12000,
+
+  // если форма отправлена быстрее — помечаем заявку как подозрительную,
+  // но всё равно доставляем: лучше лишняя пометка, чем потерянный клиент
+  minFillMs: 1200
+};
+
 (function(){
   'use strict';
 
@@ -25,10 +70,14 @@
   var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   function reducedMotion(){ return motionQuery.matches; }
 
+  /* Every entry excludes tabindex="-1" so programmatically-unfocusable
+     elements can never be a focus-trap boundary. The honeypot field is an
+     <input>, so without this it would qualify as a trap edge and Tab could
+     land the visitor on an invisible field. */
   var FOCUSABLE = [
     'a[href]', 'button:not([disabled])', 'input:not([disabled])',
-    'textarea:not([disabled])', 'select:not([disabled])', '[tabindex]:not([tabindex="-1"])'
-  ].join(',');
+    'textarea:not([disabled])', 'select:not([disabled])', '[tabindex]'
+  ].map(function(sel){ return sel + ':not([tabindex="-1"])'; }).join(',');
 
   function $(id){ return document.getElementById(id); }
 
@@ -309,16 +358,220 @@
     success.focus();
   }
 
-  /* ---------------------------------------------------------------
-     TODO-BACKEND:
-     Обе формы ниже (основная и модальная) пока не отправляют данные
-     никуда — только показывают сообщение об успехе локально в
-     браузере. Перед запуском нужно подключить реальную отправку,
-     например:
-       - Telegram Bot API (webhook на бота компании)
-       - e-mail сервис (напр. через простой backend-эндпоинт)
-       - CRM webhook (amoCRM, Bitrix24 и т.п.)
-     --------------------------------------------------------------- */
+  /* ==================== 7b. LEAD DELIVERY ================================
+     Сборка сообщения, отправка в Telegram и состояния формы во время
+     отправки. Всё, что связано с транспортом, живёт здесь: чтобы позже
+     перенести отправку на свой сервер или воркер, достаточно заменить
+     функцию transport() — остальной код её не касается. */
+
+  function configured(){
+    return TELEGRAM.botToken.indexOf('ВСТАВЬТЕ') === -1
+        && TELEGRAM.chatId.indexOf('ВСТАВЬТЕ') === -1
+        && !!TELEGRAM.botToken && !!TELEGRAM.chatId;
+  }
+
+  // Telegram разбирает parse_mode: HTML, поэтому пользовательский текст
+  // обязательно экранируем — иначе "<" в задаче ломает всё сообщение
+  // (Telegram вернёт 400 и заявка потеряется).
+  function esc(v){
+    return String(v == null ? '' : v)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function stamp(){
+    try{
+      return new Date().toLocaleString('ru-RU', {
+        timeZone: 'Asia/Almaty', day: '2-digit', month: '2-digit',
+        year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+    }catch(e){
+      return new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+    }
+  }
+
+  /* Telegram отклоняет сообщения длиннее 4096 символов, и тогда заявка
+     теряется целиком. Поле «задача» — единственное, что может быть сколь
+     угодно длинным, поэтому обрезаем именно его, оставляя место под
+     остальные строки. Обрезка помечается, чтобы было видно: текст неполный,
+     и стоит перезвонить за подробностями. */
+  var TASK_LIMIT = 3000;
+
+  function clampTask(v){
+    if(!v) return '';
+    if(v.length <= TASK_LIMIT) return v;
+    return v.slice(0, TASK_LIMIT) + '… [текст обрезан, полностью — спросить у клиента]';
+  }
+
+  function buildMessage(lead){
+    var lines = [
+      '🔔 <b>Новая заявка — Ramzur</b>',
+      '',
+      '<b>Имя:</b> ' + esc(lead.name),
+      '<b>Телефон:</b> ' + esc(lead.phone)
+    ];
+    if(lead.task) lines.push('<b>Задача:</b> ' + esc(clampTask(lead.task)));
+    lines.push('');
+    lines.push('<b>Откуда:</b> ' + esc(lead.source));
+    lines.push('<b>Время:</b> ' + esc(stamp()) + ' (Астана)');
+    if(lead.pageUrl) lines.push('<b>Страница:</b> ' + esc(lead.pageUrl));
+    if(lead.suspicious){
+      lines.push('');
+      lines.push('⚠️ <i>Форма заполнена подозрительно быстро — возможно, бот.</i>');
+    }
+    return lines.join('\n');
+  }
+
+  /* Единственное место, которое знает про Telegram.
+     Тело запроса — URLSearchParams, а не JSON, СПЕЦИАЛЬНО: с JSON браузер
+     сначала отправляет preflight OPTIONS, а api.telegram.org отвечает на
+     него 501, и запрос не уходит вообще. Form-encoded тело делает запрос
+     "простым", preflight не нужен, и POST проходит напрямую. */
+  function transport(text){
+    var url = 'https://api.telegram.org/bot' + TELEGRAM.botToken + '/sendMessage';
+    var body = new URLSearchParams({
+      chat_id: TELEGRAM.chatId,
+      text: text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: 'true'
+    });
+
+    /* Таймаут сделан гонкой двух обещаний, а не только через abort().
+       Если полагаться на AbortController, то в браузере без него (или если
+       запрос почему-то не реагирует на отмену) обещание не завершится
+       никогда — кнопка останется заблокированной навсегда, и посетитель
+       не сможет ни повторить отправку, ни увидеть ошибку.
+       Гонка гарантирует, что интерфейс восстановится в любом случае;
+       abort() при этом всё равно вызывается, чтобы оборвать сам запрос. */
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    var timer;
+
+    var request = fetch(url, {
+      method: 'POST',
+      body: body,
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function(res){
+      return res.json().catch(function(){ return { ok: false }; });
+    }).then(function(data){
+      if(!data || !data.ok){
+        throw new Error('telegram: ' + ((data && data.description) || 'unknown error'));
+      }
+      return data;
+    });
+
+    var timeout = new Promise(function(_, reject){
+      timer = setTimeout(function(){
+        if(ctrl) ctrl.abort();
+        reject(new Error('timeout после ' + TELEGRAM.timeoutMs + 'мс'));
+      }, TELEGRAM.timeoutMs);
+    });
+
+    return Promise.race([request, timeout]).finally(function(){
+      clearTimeout(timer);
+    });
+  }
+
+  function sendLead(lead){
+    if(!configured()){
+      return Promise.reject(new Error(
+        'Отправка заявок не настроена: впишите botToken и chatId в начале script.js'
+      ));
+    }
+    return transport(buildMessage(lead));
+  }
+
+  /* ---------- состояния формы во время отправки ---------- */
+
+  function submitButton(form){ return form.querySelector('button[type="submit"]'); }
+
+  function setSending(form, on){
+    var btn = submitButton(form);
+    if(!btn) return;
+    if(on){
+      if(!btn.dataset.label) btn.dataset.label = btn.textContent.trim();
+      btn.disabled = true;
+      btn.dataset.sending = 'true';
+      btn.setAttribute('aria-busy', 'true');
+      btn.textContent = 'Отправляем…';
+    }else{
+      btn.disabled = false;
+      delete btn.dataset.sending;
+      btn.removeAttribute('aria-busy');
+      if(btn.dataset.label) btn.textContent = btn.dataset.label;
+    }
+  }
+
+  function errorBox(form){
+    return form.parentNode.querySelector('.form-error');
+  }
+
+  function showError(form){
+    var box = errorBox(form);
+    if(box) box.hidden = false;
+  }
+
+  function hideError(form){
+    var box = errorBox(form);
+    if(box) box.hidden = true;
+  }
+
+  /* Общий обработчик отправки для обеих форм. */
+  function handleSubmit(opts){
+    var form = opts.form;
+    var success = opts.success;
+    var fields = opts.fields;
+    var readyAt = Date.now();
+    var busy = false;
+
+    // приманка для ботов: настоящий посетитель это поле не видит и не
+    // может в него попасть табом, поэтому заполненное поле = бот
+    var honeypot = form.querySelector('.hp-field');
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      if(busy) return;                       // защита от двойной отправки
+      if(!validateLead(fields)) return;
+
+      if(honeypot && honeypot.value){
+        // боту показываем то же, что человеку, но никуда не отправляем
+        showSuccess(form, success);
+        return;
+      }
+
+      hideError(form);
+      busy = true;
+      setSending(form, true);
+
+      sendLead({
+        name: opts.getName(),
+        phone: opts.getPhone(),
+        task: opts.getTask(),
+        source: opts.getSource(),
+        pageUrl: location.href,
+        suspicious: (Date.now() - readyAt) < TELEGRAM.minFillMs
+      }).then(function(){
+        showSuccess(form, success);
+      }).catch(function(err){
+        // ошибку показываем человеку, подробность — в консоль для нас
+        if(window.console && console.error) console.error('[Ramzur] ' + err.message);
+        setSending(form, false);
+        showError(form);
+      }).finally(function(){
+        busy = false;
+      });
+    });
+
+    return {
+      reset: function(){
+        busy = false;
+        readyAt = Date.now();
+        setSending(form, false);
+        hideError(form);
+        if(honeypot) honeypot.value = '';
+      }
+    };
+  }
 
   /* ==================== 8. MAIN CONTACT FORM ============================= */
 
@@ -330,17 +583,14 @@
     var fields = [$('name'), $('phone')].filter(Boolean);
     clearErrorOnInput(fields);
 
-    form.addEventListener('submit', function(e){
-      e.preventDefault();
-      if(!validateLead(fields)) return;
-
-      // Пример точки интеграции:
-      // fetch('/api/lead', { method:'POST', body: JSON.stringify({
-      //   name: $('name').value, phone: $('phone').value,
-      //   task: $('task').value
-      // }) })
-
-      showSuccess(form, success);
+    handleSubmit({
+      form: form,
+      success: success,
+      fields: fields,
+      getName: function(){ return $('name').value.trim(); },
+      getPhone: function(){ return $('phone').value.trim(); },
+      getTask: function(){ return $('task').value.trim(); },
+      getSource: function(){ return 'Форма в разделе «Контакты»'; }
     });
   })();
 
@@ -368,6 +618,7 @@
     var lastFocused = null;
     var lastTrigger = null;
     var closeTimer = null;
+    var currentSource = '';
 
     var DEFAULT_TITLE = 'Оставьте заявку';
     var DEFAULT_SUB = 'Заполните два поля — свяжемся с вами в течение 24 часов.';
@@ -379,6 +630,11 @@
     function openModal(trigger){
       clearTimeout(closeTimer);
 
+      // the CTA's own wording is the most useful "where did this come from"
+      // we can put in the notification
+      currentSource = (trigger.dataset.title || DEFAULT_TITLE)
+        + ' (кнопка «' + trigger.textContent.trim().replace(/\s+/g, ' ') + '»)';
+
       titleEl.textContent = trigger.dataset.title || DEFAULT_TITLE;
       subEl.textContent = trigger.dataset.sub || DEFAULT_SUB;
       taskField.placeholder = trigger.dataset.placeholder || 'Пара предложений о задаче';
@@ -389,6 +645,9 @@
       taskField.value = '';
       resetGrow(taskField);
       fields.forEach(function(f){ f.value = ''; markInvalid(f, false); });
+      // clears any error left from a previous failed attempt, re-enables the
+      // button and restarts the fill timer for the spam check
+      if(submitter) submitter.reset();   // assigned below; openModal runs after
 
       // Both are recorded: activeElement is the more accurate return point
       // for keyboard users, but Safari does not focus a button when it is
@@ -463,16 +722,14 @@
       }
     });
 
-    form.addEventListener('submit', function(e){
-      e.preventDefault();
-      if(!validateLead(fields)) return;
-
-      // Пример точки интеграции:
-      // fetch('/api/lead', { method:'POST', body: JSON.stringify({
-      //   name: nameField.value, phone: phoneField.value, task: taskField.value
-      // }) })
-
-      showSuccess(form, success);
+    var submitter = handleSubmit({
+      form: form,
+      success: success,
+      fields: fields,
+      getName: function(){ return nameField.value.trim(); },
+      getPhone: function(){ return phoneField.value.trim(); },
+      getTask: function(){ return taskField.value.trim(); },
+      getSource: function(){ return currentSource || DEFAULT_TITLE; }
     });
   })();
 
